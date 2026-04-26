@@ -1,0 +1,4 @@
+{
+    "symbol_to_atomic_number": {"H": 1, "C": 6},
+    "atomic_number_to_atom_type": {"1": 2, "6": 1} // type IDs: 1 = CT (sp3 carbon), 2 = HC (hydrogen on carbon)
+}
