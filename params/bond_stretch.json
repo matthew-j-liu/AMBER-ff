@@ -1,7 +1,0 @@
-{
-    "entries": [
-        { "type_i": 1, "type_j": 1, "Kr": xxx, "r_eq": xxx },
-        { "type_i": 1, "type_j": 2, "Kr": xxx, "r_eq": xxx },
-        { "type_i": 2, "type_j": 1, "Kr": xxx, "r_eq": xxx }
-    ]
-}
