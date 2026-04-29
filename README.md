@@ -36,8 +36,14 @@ H -0.507699 -1.155662 -0.879360
     * `ff_params.hpp`: ready to store AMBER force field parameters.
     * `molecule.hpp`: used composition to define a `Molecule` struct based on many `Atom` structs. 
 
+
+### 2026-04-29 log
+* Given that `gaff2.dat` is this monolith of parameters, of which we only need a small subset, I extracted just the rows relevant to saturated hydrocarbons. The smaller parameter file is `hydrocarbons.dat`, where parameter sections are delimited by bracketed headers to help with parsing.
+* Wrote a parser for `hydrocarbons.dat` in `read_params.cpp`. A single function, `load_params(filepath)`, uses 4 helper functions (one per parameter struct). 
+
+
 ### Next steps
-* Parsing the `gaff2.dat` file into a `ForceField` object.
 * Parsing the .xyz files into `Molecule` objects 
+
 
 
