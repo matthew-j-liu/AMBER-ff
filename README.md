@@ -93,11 +93,12 @@ H -0.507699 -1.155662 -0.879360
     6  H  (-0.507699, -1.15566, 0.87936)  neighbors={1}
     7  H  (-0.507699, -1.15566, -0.87936)  neighbors={1}
     ```
-
+### ML 2026-04-30 log (part II)
+* Added `atom_typing.cpp` to assign sp3 carbon and `hc` hydrogen in saturated hydrocarbons. Throws an error if there are other types of atoms, we can augment the code to identiy other atom types later. The logic is quite simple, just using the element identity and number of bonds associated to that element
+* I think from here, we have all the pieces in place to calculate energy of our hydrocarbons! I have ethane up to hexane in the `input_molecules` directory.
 
 
 ### Next steps
-* Atom typing - so based on element and neighbor count, we assign an atom's AMBER type (for example, "c3" for sp3 carbons)
 * Try to calculate energies of our hydrocarbon subset! 
 
 
