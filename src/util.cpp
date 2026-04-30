@@ -1,42 +1,15 @@
-#include <sstream> 
-#include <fstream> 
-
-/* 
-Parameter lookups for all 4 functions from the dat file
-*/ 
-
-double bond_term_params(std::string atom_type)
-{
-    
-}
-
-
-double angles_term_params(std::string atom_type1, std::string atom_type2)
-{
-    
-}
-
-
-double dihedrals_term_params(std::string atom_type1, std::string atom_type2, std::string atom_type3)
-{
-    
-}
-
-
-double electrostatic_vdw_term_params(std::string atom_type1, std::string atom_type2)
-{
-    
-}
+#include "util.hpp"
+#include <algorithm>
 
 // Calculate the bond distance, bond angle and dihedral angles
 // euclidean distance between two atom positions
-static double dist(const arma::vec& a, const arma::vec& b)
+double dist(const arma::vec& a, const arma::vec& b)
 {
     return arma::norm(b - a);
 }
 
 // bond angle at j in the triplet i-j-k, returned in degrees
-static double angle_deg(const arma::vec& pi, const arma::vec& pj, const arma::vec& pk)
+double angle_deg(const arma::vec& pi, const arma::vec& pj, const arma::vec& pk)
 {
     arma::vec v1 = pi - pj;
     arma::vec v2 = pk - pj;
@@ -46,7 +19,7 @@ static double angle_deg(const arma::vec& pi, const arma::vec& pj, const arma::ve
 }
 
 // dihedral angle for i-j-k-l, returned in degrees
-static double dihedral_deg(const arma::vec& pi, const arma::vec& pj,
+double dihedral_deg(const arma::vec& pi, const arma::vec& pj,
                             const arma::vec& pk, const arma::vec& pl)
 {
     arma::vec b1 = pj - pi;

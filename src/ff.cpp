@@ -15,13 +15,10 @@ formula used are the original amber force field terms
 Imp Question: where do A, B, C, D terms come from for the VDW and HBond terms?? 
 */
 
+#include "util.hpp"
 #include "ff.hpp"
 #include <cmath>
 #include <armadillo>
-
-
-// later move all constants to a constants namespace in a header file
-static const double DEG2RAD = M_PI / 180.0;
 
 // E = K_r * (r - r_eq)^2
 double bond_streching_energy(double bond_length, double K_r, double r_eq)
@@ -45,7 +42,7 @@ double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
             auto it = ff.bonds.find({ti, tj});
             if (it == ff.bonds.end()) it = ff.bonds.find({tj, ti});
             if (it == ff.bonds.end()) continue;
-            total += bond_streching_energy(r, it->second.K_r, it->second.r_eq);
+            total_be += bond_streching_energy(r, it->second.K_r, it->second.r_eq);
         }
     }
     return total_be;
@@ -156,8 +153,13 @@ double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceFie
 
             double R_star_ij = it_i->second.R_star + it_j->second.R_star;
             double eps_ij    = std::sqrt(it_i->second.epsilon * it_j->second.epsilon);
+
+            // Convert from R*/eps form, which is implied in the parameter file, to A and B
+            double A = eps_ij * std::pow(R_star_ij, 12);
+            double B = 2.0 * eps_ij * std::pow(R_star_ij, 6); 
+
             double r         = dist(mol.atoms[i].position, mol.atoms[j].position);
-            total += vdw_energy(r, R_star_ij, eps_ij);
+            total += vdw_energy(r, A, B); 
         }
     }
     return total;
