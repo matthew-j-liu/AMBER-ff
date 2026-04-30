@@ -3,15 +3,15 @@
 #include <string>
 
 /*
-Reads an .xyz file and returns a Molecule.
+Reads an .xyz file and returns a MoleculeGraph.
 
 Expected format
 ----------------
-    -Line 1: num_atos
+    -Line 1: num_atoms
     -Line 2: comment
     -Lines 3-A: section for atomic positions
         -Each line: element x y z
     -Lines A-Z: section for bonds 
         -Each line: atom_i atom_j 
 */
-Molecule read_xyz(const std::string& filepath);
+MoleculeGraph read_xyz(const std::string& filepath);
