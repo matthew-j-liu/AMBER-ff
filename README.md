@@ -56,4 +56,8 @@ H -0.507699 -1.155662 -0.879360
 * Some test cases 
 
 
+### Notes/ ongoing questions
+* Modern FF do not use the explicit H bond term. 
+* where do the A, B, C, D parameters come from? I don't think we read them from the .dat
+
 
