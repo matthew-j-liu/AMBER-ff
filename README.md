@@ -1,7 +1,7 @@
 ## Chem 279 | MSSE | Spring 2026
 ### Matthew Liu and Jahnavi Gandhi
 
-### 2026-04-28 log
+### ML 2026-04-28 log
 
 * I downloaded a database of .xyz files from: https://www.skies-village.it/webtools/databases/LCB25/
     * Then I pasted in the following subset of .xyz files into the repo:
@@ -37,13 +37,23 @@ H -0.507699 -1.155662 -0.879360
     * `molecule.hpp`: used composition to define a `Molecule` struct based on many `Atom` structs. 
 
 
-### 2026-04-29 log
+### ML 2026-04-29 log 
 * Given that `gaff2.dat` is this monolith of parameters, of which we only need a small subset, I extracted just the rows relevant to saturated hydrocarbons. The smaller parameter file is `hydrocarbons.dat`, where parameter sections are delimited by bracketed headers to help with parsing.
 * Wrote a parser for `hydrocarbons.dat` in `read_params.cpp`. A single function, `load_params(filepath)`, uses 4 helper functions (one per parameter struct). 
 
 
+### JG 2026-04-29 log 
+* implemented the basic version of a molecule as a graph structure - nodes as the atoms and egdes as the bonds associated with it. 
+    * on initialization, it needs functions that identify which atoms are bonded (is there a threshold to use?)
+* implemented the functions and associated helper functions to calculate each term in the FF. These can all be found in ff.cpp
+    * Imp Question: where do the A, B, C, D parameters come from? I don't think we read them from the .dat
+* implemented functions to calculate bond lengths, bond angles, and dihedral angles from coordinates file and molecule as a graph
+
+
 ### Next steps
 * Parsing the .xyz files into `Molecule` objects 
+* Implement functions to identify which atoms are bonded (is there a threshold to use?)
+* Some test cases 
 
 
 
