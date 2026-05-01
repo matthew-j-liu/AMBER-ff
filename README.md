@@ -94,7 +94,19 @@ H -0.507699 -1.155662 -0.879360
     7  H  (-0.507699, -1.15566, -0.87936)  neighbors={1}
     ```
 
+### JG 2026-04-30 log
 
+1. on branch jahnavi-misc, I have started with some code for making and building the repo + some bash scripts for easy build_and_run. Also added some logic for to implement the atom type ID.  
+2. Tested all 5 hydrocarbons currently considered. Edited code in main for this. 
+Note to myself: Compilation code for me
+    ```
+    g++ -std=c++17 \\
+    src/main.cpp src/read_xyz.cpp src/read_params.cpp src/molecule.cpp src/util.cpp src/ff.cpp \
+    -I$CONDA_PREFIX/include \
+    -L$CONDA_PREFIX/lib \
+    -o main \
+    -larmadillo
+    ```
 
 ### Next steps
 * Atom typing - so based on element and neighbor count, we assign an atom's AMBER type (for example, "c3" for sp3 carbons)
@@ -105,5 +117,6 @@ H -0.507699 -1.155662 -0.879360
 * Modern FF do not use the explicit H bond term. 
 * where do the A, B, C, D parameters come from? I don't think we read them from the .dat
     * Matthew's note (2026-04-30): I addressed $A$ and $B$ in my log, good question for C and D. I think as you noted above, various versions of AMBER do not have an explicit hydrogen bonding term. Rather, many parameters have the H-bonding folded into the parameter itself. I forget which is the case for our .dat file, but for now I propose we don't have the H-bonding term for simplicity. 
+
 
 
