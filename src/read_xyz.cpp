@@ -42,6 +42,15 @@ MoleculeGraph read_xyz(const std::string& filepath)
         }
 
         a.position = arma::vec({x, y, z});
+        // ambertype is hard-coded for now
+        if (a.element == "C")
+        {
+            a.amber_type = "c3";
+        }
+        else if (a.element == "H")
+        {
+            a.amber_type = "hc";
+        }
         mol.add_atom(a);
     }
 

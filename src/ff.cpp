@@ -10,9 +10,6 @@ Loop through atoms -
 within the loops, calculate the individual terms,
 use the read_params files for getting values of the parameters corresponding to each atom type and then structural info from the ff_params.hpp
 formula used are the original amber force field terms
-
-
-Imp Question: where do A, B, C, D terms come from for the VDW and HBond terms?? 
 */
 
 #include "util.hpp"
@@ -30,7 +27,7 @@ double bond_streching_energy(double bond_length, double K_r, double r_eq)
 // include only bonded atoms
 double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
 {
-    double total_be = 0.0;
+    double total = 0.0;
     for (int i = 0; i < mol.num_atoms(); ++i)
     {
         for (int j : mol.neighbors(i))
@@ -42,10 +39,10 @@ double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
             auto it = ff.bonds.find({ti, tj});
             if (it == ff.bonds.end()) it = ff.bonds.find({tj, ti});
             if (it == ff.bonds.end()) continue;
-            total_be += bond_streching_energy(r, it->second.K_r, it->second.r_eq);
+            total += bond_streching_energy(r, it->second.K_r, it->second.r_eq);
         }
     }
-    return total_be;
+    return total;
 }
 
 // E = K_theta * (theta_rad - theta_eq_rad)^2

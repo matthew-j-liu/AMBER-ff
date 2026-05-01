@@ -2,8 +2,10 @@
 #include "read_xyz.hpp"
 #include "ff_params.hpp"
 #include "read_params.hpp"
+#include "ff.hpp"
 #include <iostream>
 #include <stdexcept>
+
 
 /*
 Test parameter parsing, molecule parsing, and
@@ -48,5 +50,20 @@ int main(int argc, char** argv)
         }
         std::cout << "}" << std::endl;
     }
+
+    // calculate energy 
+    double bonds_term = calculate_bonds_term(mol, ff);
+    double angles_term = calculate_angles_term(mol, ff); 
+    double dihedrals_term = calculate_dihedrals_term(mol, ff); 
+    double electrostatic_vdw_term = calculate_electrostatic_vdw_term(mol, ff); 
+
+    double total_energy = bonds_term + angles_term + dihedrals_term + electrostatic_vdw_term; 
+
+    std::cout << "Bond stretching energy = " << bonds_term << std::endl;
+    std::cout << "Bond Rotation energy = " << angles_term << std::endl;
+    std::cout << "Torsion energy = " << dihedrals_term << std::endl;
+    std::cout << "Van der waals energy = " << electrostatic_vdw_term << std::endl;
+
+    std::cout << "Total energy = " << total_energy << std::endl;
     return 0;
 }
