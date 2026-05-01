@@ -96,7 +96,19 @@ H -0.507699 -1.155662 -0.879360
 ### ML 2026-04-30 log (part II)
 * Added `atom_typing.cpp` to assign sp3 carbon and `hc` hydrogen in saturated hydrocarbons. Throws an error if there are other types of atoms, we can augment the code to identiy other atom types later. The logic is quite simple, just using the element identity and number of bonds associated to that element
 * I think from here, we have all the pieces in place to calculate energy of our hydrocarbons! I have ethane up to hexane in the `input_molecules` directory.
+### JG 2026-04-30 log
 
+1. on branch jahnavi-misc, I have started with some code for making and building the repo + some bash scripts for easy build_and_run. Also added some logic for to implement the atom type ID.  
+2. Tested all 5 hydrocarbons currently considered. Edited code in main for this. 
+Note to myself: Compilation code for me
+    ```
+    g++ -std=c++17 \\
+    src/main.cpp src/read_xyz.cpp src/read_params.cpp src/molecule.cpp src/util.cpp src/ff.cpp \
+    -I$CONDA_PREFIX/include \
+    -L$CONDA_PREFIX/lib \
+    -o main \
+    -larmadillo
+    ```
 
 ### Next steps
 * Try to calculate energies of our hydrocarbon subset! 
@@ -106,5 +118,6 @@ H -0.507699 -1.155662 -0.879360
 * Modern FF do not use the explicit H bond term. 
 * where do the A, B, C, D parameters come from? I don't think we read them from the .dat
     * Matthew's note (2026-04-30): I addressed $A$ and $B$ in my log, good question for C and D. I think as you noted above, various versions of AMBER do not have an explicit hydrogen bonding term. Rather, many parameters have the H-bonding folded into the parameter itself. I forget which is the case for our .dat file, but for now I propose we don't have the H-bonding term for simplicity. 
+
 
 
