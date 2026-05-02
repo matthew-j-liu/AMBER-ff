@@ -1,7 +1,7 @@
 ## Chem 279 | MSSE | Spring 2026
 ### Matthew Liu and Jahnavi Gandhi
 
-### 2026-04-28 log
+### ML 2026-04-28 log
 
 * I downloaded a database of .xyz files from: https://www.skies-village.it/webtools/databases/LCB25/
     * Then I pasted in the following subset of .xyz files into the repo:
@@ -37,13 +37,87 @@ H -0.507699 -1.155662 -0.879360
     * `molecule.hpp`: used composition to define a `Molecule` struct based on many `Atom` structs. 
 
 
-### 2026-04-29 log
+### ML 2026-04-29 log 
 * Given that `gaff2.dat` is this monolith of parameters, of which we only need a small subset, I extracted just the rows relevant to saturated hydrocarbons. The smaller parameter file is `hydrocarbons.dat`, where parameter sections are delimited by bracketed headers to help with parsing.
 * Wrote a parser for `hydrocarbons.dat` in `read_params.cpp`. A single function, `load_params(filepath)`, uses 4 helper functions (one per parameter struct). 
 
 
+### JG 2026-04-29 log 
+* implemented the basic version of a molecule as a graph structure - nodes as the atoms and egdes as the bonds associated with it. 
+    * on initialization, it needs functions that identify which atoms are bonded (is there a threshold to use?)
+* implemented the functions and associated helper functions to calculate each term in the FF. These can all be found in ff.cpp
+    * Imp Question: where do the A, B, C, D parameters come from? I don't think we read them from the .dat
+* implemented functions to calculate bond lengths, bond angles, and dihedral angles from coordinates file and molecule as a graph
+
+### ML 2026-04-30 log 
+* Fixed a few bugs in `ff.cpp` and `util.cpp` that would prevent the energy code from compliling and linking. For example, some methods were marked `static` that shouldn't have been. Some additional small changes
+    * Moved `DEG2RAD` INTO `util.hpp` as a constant 
+    * Fixed variable name mismatch in `calculate_bonds_term` 
+    * Parameter lookup happens through the `ForceField` map, so got rid of the 4 placeholder functions in `ff.cpp` 
+* To your question about how A and B terms are derived - the params file assumes one form of the LJ equation using $R^*$ and $\epsilon$. The equation we've been looking at uses another form with $A$ and $B$. The two are related as:
+
+    ``` 
+    double A = eps_ij * std::pow(R_star_ij, 12);
+    double B = 2.0 * eps_ij * std::pow(R_star_ij, 6); 
+    ```
+
+    Note I have added this conversion in `ff.cpp`. 
+
+* I wrote `read_xyz.cpp` leveraging the `MoleculeGraph` and got rid of the original `Molecule` struct I had in `molecule.hpp`.
+* To verify both parameter and xyz parsing, I filled in `main` with a quick test case on ethane. The correct parameters, atom positions, and bond information are printed out. I have yet to test on the other hydrocarbons, but this was encouraging! Note that I compiled and ran as follows:
+
+    ```
+    g++ -std=c++17 src/main.cpp src/read_xyz.cpp src/read_params.cpp src/molecule.cpp src/util.cpp src/ff.cpp -o main -larmadillo 
+
+    ./main input_molecules/ethane.xyz params/hydrocarbons.dat
+    ```
+
+    For your convenience, here was the output:
+
+    ```
+    Molecule loaded!
+    atoms: 8
+    bonds: 7
+
+    Forcefield parameters loaded!
+    # of bond params: 2
+    # of angle params: 3
+    # of dihedral params: 3
+    # of vdw params: 2
+    0  C  (-0, 0.76155, -0)  neighbors={1,2,3,4}
+    1  C  (-0, -0.76155, -0)  neighbors={0,5,6,7}
+    2  H  (-1.0154, 1.15566, -0)  neighbors={0}
+    3  H  (0.507699, 1.15566, 0.87936)  neighbors={0}
+    4  H  (0.507699, 1.15566, -0.87936)  neighbors={0}
+    5  H  (1.0154, -1.15566, 0)  neighbors={1}
+    6  H  (-0.507699, -1.15566, 0.87936)  neighbors={1}
+    7  H  (-0.507699, -1.15566, -0.87936)  neighbors={1}
+    ```
+### ML 2026-04-30 log (part II)
+* Added `atom_typing.cpp` to assign sp3 carbon and `hc` hydrogen in saturated hydrocarbons. Throws an error if there are other types of atoms, we can augment the code to identiy other atom types later. The logic is quite simple, just using the element identity and number of bonds associated to that element
+* I think from here, we have all the pieces in place to calculate energy of our hydrocarbons! I have ethane up to hexane in the `input_molecules` directory.
+### JG 2026-04-30 log
+
+1. on branch jahnavi-misc, I have started with some code for making and building the repo + some bash scripts for easy build_and_run. Also added some logic for to implement the atom type ID.  
+2. Tested all 5 hydrocarbons currently considered. Edited code in main for this. 
+Note to myself: Compilation code for me
+    ```
+    g++ -std=c++17 \\
+    src/main.cpp src/read_xyz.cpp src/read_params.cpp src/molecule.cpp src/util.cpp src/ff.cpp \
+    -I$CONDA_PREFIX/include \
+    -L$CONDA_PREFIX/lib \
+    -o main \
+    -larmadillo
+    ```
+
 ### Next steps
-* Parsing the .xyz files into `Molecule` objects 
+* Try to calculate energies of our hydrocarbon subset! 
+
+
+### Notes/ ongoing questions
+* Modern FF do not use the explicit H bond term. 
+* where do the A, B, C, D parameters come from? I don't think we read them from the .dat
+    * Matthew's note (2026-04-30): I addressed $A$ and $B$ in my log, good question for C and D. I think as you noted above, various versions of AMBER do not have an explicit hydrogen bonding term. Rather, many parameters have the H-bonding folded into the parameter itself. I forget which is the case for our .dat file, but for now I propose we don't have the H-bonding term for simplicity. 
 
 
 

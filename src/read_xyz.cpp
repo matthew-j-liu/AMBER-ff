@@ -3,18 +3,72 @@
 #include <sstream>
 #include <stdexcept>
 
-Molecule read_xyz(const std::string& filepath)
+MoleculeGraph read_xyz(const std::string& filepath)
 {
-    std::ifstream f(filepath);  
+    std::ifstream f(filepath);
 
-    if (!f.is_open())     
+    if (!f.is_open())
     {
         throw std::runtime_error("Cannot open: " + filepath);
-    } 
+    }
 
-    Molecule molecule;
+    MoleculeGraph mol;
+    std::string line;
 
-    // adapt xyz parsing function from homeworks 
+    // line 1: atom count
+    std::getline(f, line);
+    std::istringstream count_iss(line);
+    int num_atoms = 0;
 
-    return molecule; 
+    if (!(count_iss >> num_atoms))
+    {
+        throw std::runtime_error("Atom count needed on line 1!");
+    }
+
+    // line 2: comment (discard, like in the homeworks)
+    std::getline(f, line);
+
+    // Lines 3-A: atom rows (element x y z)
+    for (int i = 0; i < num_atoms; i++)
+    {
+        std::getline(f, line);
+        std::istringstream iss(line);
+        Atom a;
+        double x, y, z;
+
+        if (!(iss >> a.element >> x >> y >> z))
+        {
+            throw std::runtime_error("Malformed atom row: " + line);
+        }
+
+        a.position = arma::vec({x, y, z});
+        // ambertype is hard-coded for now
+        if (a.element == "C")
+        {
+            a.amber_type = "c3";
+        }
+        else if (a.element == "H")
+        {
+            a.amber_type = "hc";
+        }
+        mol.add_atom(a);
+    }
+
+    // Lines A-Z: bond rows (atom_i atom_j)
+    std::getline(f, line); // section header
+
+    while (std::getline(f, line))
+    {
+        std::istringstream iss(line);
+        int i, j;
+
+        if (!(iss >> i >> j))
+        {
+            throw std::runtime_error("Malformed bond row: " + line);
+        }
+
+        mol.add_bond(i, j);
+    }
+
+    return mol;
 }
