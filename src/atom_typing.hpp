@@ -16,4 +16,6 @@ Where the type of the latter depends on the former being classified first
 */
 
 // functions in atom_typing.cpp 
+void type_carbon_backbones(MoleculeGraph& mol);
+void type_hydrogens(MoleculeGraph& mol);
 void assign_amber_types(MoleculeGraph& mol);

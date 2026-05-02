@@ -96,22 +96,28 @@ H -0.507699 -1.155662 -0.879360
 ### ML 2026-04-30 log (part II)
 * Added `atom_typing.cpp` to assign sp3 carbon and `hc` hydrogen in saturated hydrocarbons. Throws an error if there are other types of atoms, we can augment the code to identiy other atom types later. The logic is quite simple, just using the element identity and number of bonds associated to that element
 * I think from here, we have all the pieces in place to calculate energy of our hydrocarbons! I have ethane up to hexane in the `input_molecules` directory.
+
 ### JG 2026-04-30 log
 
 1. on branch jahnavi-misc, I have started with some code for making and building the repo + some bash scripts for easy build_and_run. Also added some logic for to implement the atom type ID.  
 2. Tested all 5 hydrocarbons currently considered. Edited code in main for this. 
 Note to myself: Compilation code for me
     ```
-    g++ -std=c++17 \\
-    src/main.cpp src/read_xyz.cpp src/read_params.cpp src/molecule.cpp src/util.cpp src/ff.cpp \
-    -I$CONDA_PREFIX/include \
-    -L$CONDA_PREFIX/lib \
-    -o main \
+    g++ -std=c++17 
+    src/main.cpp src/read_xyz.cpp src/read_params.cpp src/molecule.cpp src/util.cpp src/ff.cpp 
+    -I$CONDA_PREFIX/include 
+    -L$CONDA_PREFIX/lib -Wl, -rpath, $CONDA_PREFIX/lib
+    -o main 
     -larmadillo
     ```
 
+### JG 2026-05-01 log
+1. added some starting code for atom typing 
+2. adding some starting code for unit tests using google test suite and containerization 
+3. merged branches jahnavi-misc and jahnavi_updates (no reason why separate)
+
 ### Next steps
-* Try to calculate energies of our hydrocarbon subset! 
+* Try to benchmark our energy calculations against papers! 
 
 
 ### Notes/ ongoing questions

@@ -4,9 +4,9 @@
 
 /*
 classify the carbon backbone of hydrocarbon, with
-plans to generalize to other elements later 
+plans to generalize to other elements later (O and N for ethers)
 */
-void type_heavy_atoms(MoleculeGraph& mol)
+void type_carbon_backbones(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++)
     {
@@ -32,7 +32,7 @@ void type_heavy_atoms(MoleculeGraph& mol)
 
 
 /*
-Each H can only be bonded to one (heavy) atom.
+Each H can only be bonded to one carbon/ backbone atom.
 The identity of that atom dictates the identity of the H 
 For now, only support "hc", look into expanding later 
 */
@@ -49,7 +49,6 @@ void type_hydrogens(MoleculeGraph& mol)
         {
             throw std::runtime_error("non-hc hydrogen currently not supported!"); 
         }
-
         mol.atoms[i].amber_type = "hc";
     }
 }
@@ -60,6 +59,6 @@ leverage both functions, first identifying the backbone and then the hydrogens
 */
 void assign_amber_types(MoleculeGraph& mol)
 {
-    type_heavy_atoms(mol);
+    type_carbon_backbones(mol);
     type_hydrogens(mol);
 }
