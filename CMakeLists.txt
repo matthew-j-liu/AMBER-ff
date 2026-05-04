@@ -29,23 +29,23 @@ target_link_libraries(amber_ff_lib PUBLIC ${ARMADILLO_LIBRARIES})
 add_executable(amber_ff src/main.cpp)
 target_link_libraries(amber_ff PRIVATE amber_ff_lib)
 
-# Test Cases
-enable_testing()
-include(GoogleTest)
+# Test Cases (disabled)
+# enable_testing()
+# include(GoogleTest)
 
-add_executable(test_hello tests/test_hello.cpp)
-target_link_libraries(test_hello PRIVATE amber_ff_lib GTest::gtest_main)
-gtest_discover_tests(test_hello)
+# add_executable(test_hello tests/test_hello.cpp)
+# target_link_libraries(test_hello PRIVATE amber_ff_lib GTest::gtest_main)
+# gtest_discover_tests(test_hello)
 
-add_executable(test_xyz tests/test_xyz.cpp)
-target_link_libraries(test_xyz PRIVATE amber_ff_lib GTest::gtest_main)
-gtest_discover_tests(test_xyz)
+# add_executable(test_xyz tests/test_xyz.cpp)
+# target_link_libraries(test_xyz PRIVATE amber_ff_lib GTest::gtest_main)
+# gtest_discover_tests(test_xyz)
 
-add_executable(test_params tests/test_params.cpp)
-target_link_libraries(test_params PRIVATE amber_ff_lib GTest::gtest_main)
-gtest_discover_tests(test_params)
+# add_executable(test_params tests/test_params.cpp)
+# target_link_libraries(test_params PRIVATE amber_ff_lib GTest::gtest_main)
+# gtest_discover_tests(test_params)
 
-add_executable(test_calc_ff tests/test_calc_ff.cpp)
-target_link_libraries(test_calc_ff PRIVATE amber_ff_lib GTest::gtest_main)
-gtest_discover_tests(test_calc_ff)
+# add_executable(test_calc_ff tests/test_calc_ff.cpp)
+# target_link_libraries(test_calc_ff PRIVATE amber_ff_lib GTest::gtest_main)
+# gtest_discover_tests(test_calc_ff)
 

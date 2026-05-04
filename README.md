@@ -116,9 +116,17 @@ Note to myself: Compilation code for me
 2. adding some starting code for unit tests using google test suite and containerization 
 3. merged branches jahnavi-misc and jahnavi_updates (no reason why separate)
 
-### Next steps
-* Try to benchmark our energy calculations against papers! 
 
+
+### JG 2026-05-04 log
+1. Over the weekend, I worked on installing the actual AMBER FF package, and got it running to calculate energies. I have a bash file that you can run that reads the output file and prints the final energy readout. Important thing is to compare term by term and not the total energy as electrostatic interactions are not accounted for in our implementation (those params not in .gaff file)
+2. updated gaff.dat file (and hydrocarbons.dat) to the version used by the amber package that I installed (so that results match exactly). 
+3. updated these results in slides shared with you!
+4. updated van der waals term calculation to fix an error
+
+### Next steps
+* Complete atom typing so we can do more molecules 
+* think about what next/ how to present results now that we can calculate energies
 
 ### Notes/ ongoing questions
 * Modern FF do not use the explicit H bond term. 

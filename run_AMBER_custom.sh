@@ -40,12 +40,6 @@ if [[ ! -f "$PARAMS" ]]; then
   exit 1
 fi
 
-echo "==> Configuring..."
-cmake -S "$SCRIPT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
-
-echo "==> Building..."
-cmake --build "$BUILD_DIR" --parallel
-
 echo "==> Running: amber_ff $MOLECULE $PARAMS"
 echo ""
 "$BUILD_DIR/amber_ff" "$MOLECULE" "$PARAMS"

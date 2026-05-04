@@ -30,7 +30,6 @@ void type_carbon_backbones(MoleculeGraph& mol)
     }
 }
 
-
 /*
 Each H can only be bonded to one carbon/ backbone atom.
 The identity of that atom dictates the identity of the H 
@@ -52,7 +51,6 @@ void type_hydrogens(MoleculeGraph& mol)
         mol.atoms[i].amber_type = "hc";
     }
 }
-
 
 /*
 leverage both functions, first identifying the backbone and then the hydrogens

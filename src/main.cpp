@@ -2,6 +2,8 @@
 #include "read_xyz.hpp"
 #include "ff_params.hpp"
 #include "read_params.hpp"
+#include "atom_typing.hpp"
+#include "ff.hpp"
 #include <iostream>
 #include <stdexcept>
 

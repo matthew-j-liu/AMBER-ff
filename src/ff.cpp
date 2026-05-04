@@ -15,6 +15,7 @@ formula used are the original amber force field terms
 #include "util.hpp"
 #include "ff.hpp"
 #include <cmath>
+#include <set>
 #include <armadillo>
 
 // E = K_r * (r - r_eq)^2
@@ -133,14 +134,49 @@ double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceFie
 {
     double total = 0.0;
     int n = mol.num_atoms();
+
+    // AMBER excludes 1-2 and 1-3 pairs; 1-4 pairs are scaled by 0.5 (GAFF scee/scnb)
+    std::set<std::pair<int,int>> excluded;
+    std::set<std::pair<int,int>> scaled_14;
+
+    for (int j = 0; j < n; ++j)
+    {
+        // 1-2 exclusions
+        for (int i : mol.neighbors(j))
+            if (i > j) excluded.insert({j, i});
+
+        // 1-3 exclusions: any two neighbors of j
+        const auto& nbrs = mol.neighbors(j);
+        for (int a = 0; a < (int)nbrs.size(); ++a)
+            for (int b = a + 1; b < (int)nbrs.size(); ++b)
+                excluded.insert({std::min(nbrs[a], nbrs[b]), std::max(nbrs[a], nbrs[b])});
+    }
+
+    // 1-4 pairs: ends of any i-j-k-l path
+    for (int j = 0; j < n; ++j)
+    {
+        for (int k : mol.neighbors(j))
+        {
+            if (k <= j) continue;
+            for (int i : mol.neighbors(j))
+            {
+                if (i == k) continue;
+                for (int l : mol.neighbors(k))
+                {
+                    if (l == j || l == i) continue;
+                    auto key = std::make_pair(std::min(i, l), std::max(i, l));
+                    if (!excluded.count(key)) scaled_14.insert(key);
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < n; ++i)
     {
         for (int j = i + 1; j < n; ++j)
         {
-            bool bonded = false;
-            for (int nb : mol.neighbors(i))
-                if (nb == j) { bonded = true; break; }
-            if (bonded) continue;
+            auto key = std::make_pair(i, j);
+            if (excluded.count(key)) continue;
 
             const std::string& ti = mol.atoms[i].amber_type;
             const std::string& tj = mol.atoms[j].amber_type;
@@ -150,13 +186,13 @@ double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceFie
 
             double R_star_ij = it_i->second.R_star + it_j->second.R_star;
             double eps_ij    = std::sqrt(it_i->second.epsilon * it_j->second.epsilon);
-
-            // Convert from R*/eps form, which is implied in the parameter file, to A and B
             double A = eps_ij * std::pow(R_star_ij, 12);
-            double B = 2.0 * eps_ij * std::pow(R_star_ij, 6); 
+            double B = 2.0 * eps_ij * std::pow(R_star_ij, 6);
+            double r = dist(mol.atoms[i].position, mol.atoms[j].position);
 
-            double r         = dist(mol.atoms[i].position, mol.atoms[j].position);
-            total += vdw_energy(r, A, B); 
+            double e = vdw_energy(r, A, B);
+            if (scaled_14.count(key)) e *= 0.5; // GAFF scnb = 2 → factor 1/2
+            total += e;
         }
     }
     return total;
