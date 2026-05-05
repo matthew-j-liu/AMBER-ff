@@ -14,8 +14,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 find_package(Armadillo REQUIRED)
+find_package(HDF5 REQUIRED)
+find_package(HighFive REQUIRED)
 
-add_library(amber_ff_lib 
+add_library(amber_ff_lib
     src/molecule.cpp
     src/read_xyz.cpp
     src/read_params.cpp
@@ -27,7 +29,7 @@ target_include_directories(amber_ff_lib PUBLIC src ${ARMADILLO_INCLUDE_DIRS})
 target_link_libraries(amber_ff_lib PUBLIC ${ARMADILLO_LIBRARIES})
 
 add_executable(amber_ff src/main.cpp)
-target_link_libraries(amber_ff PRIVATE amber_ff_lib)
+target_link_libraries(amber_ff PRIVATE amber_ff_lib HighFive::HighFive HDF5::HDF5)
 
 # Test Cases (disabled)
 # enable_testing()

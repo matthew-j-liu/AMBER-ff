@@ -6,6 +6,8 @@
 #include "ff.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
+#include <highfive/H5File.hpp>
 
 
 /*
@@ -16,7 +18,7 @@ int main(int argc, char** argv)
 {
     // adapting from the homework
     if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << "path/to/molecule" << " path/to/params" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " path/to/molecule path/to/params" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -68,5 +70,22 @@ int main(int argc, char** argv)
     std::cout << "Van der waals energy = " << electrostatic_vdw_term << std::endl;
 
     std::cout << "Total energy = " << total_energy << std::endl;
+
+    // same paradigm as in our homeworks 
+    namespace fs = std::filesystem;
+    fs::path output_file_path = fs::path("results") / fs::path(argv[1]).stem() / "custom.h5";
+
+    if (!fs::exists(output_file_path.parent_path()))
+        fs::create_directories(output_file_path.parent_path());
+    if (fs::exists(output_file_path)) fs::remove(output_file_path);
+
+    HighFive::File file(output_file_path.string(), HighFive::File::Overwrite);
+    file.createDataSet<double>("bonds_energy", HighFive::DataSpace::From(bonds_term)).write(bonds_term);
+    file.createDataSet<double>("angles_energy", HighFive::DataSpace::From(angles_term)).write(angles_term);
+    file.createDataSet<double>("dihedrals_energy", HighFive::DataSpace::From(dihedrals_term)).write(dihedrals_term);
+    file.createDataSet<double>("vdw_energy", HighFive::DataSpace::From(electrostatic_vdw_term)).write(electrostatic_vdw_term);
+    file.createDataSet<double>("total_energy", HighFive::DataSpace::From(total_energy)).write(total_energy);
+
+    std::cout << "Wrote energies to: " << output_file_path.string() << std::endl;
     return 0;
 }
