@@ -6,10 +6,11 @@ set -e
 #          ./run_AMBER_benchmarking_simple.sh propane
 MOLECULE="${1:-ethane}"
 
-# AMBER setup
-export AMBERHOME=/Users/jahnavigandhi/Desktop/chem_279/project/AMBER_benchmarking/ambertools25
+# AMBER setup. Override AMBERHOME in your shell to point at a local install;
+# otherwise default to the ambertools conda env.
+: "${AMBERHOME:=$HOME/miniconda3/envs/ambertools}"
+export AMBERHOME
 export PATH=$AMBERHOME/bin:$PATH
-export DYLD_LIBRARY_PATH=/usr/lib:$DYLD_LIBRARY_PATH
 source $AMBERHOME/amber.sh
 
 # Directories

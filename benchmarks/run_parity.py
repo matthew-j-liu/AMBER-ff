@@ -30,7 +30,7 @@ def parse_energies(sp_out: Path) -> dict[str, float]:
         "angle": grab("ANGLE"),
         "dihed": grab("DIHED"),
         "vdw": grab("VDWAALS"),
-        "nb14": grab("1-4 NB"),
+        "nb14": grab("1-4 VDW"),
     }
 
 
