@@ -7,7 +7,6 @@ output/
 # Benchmarking artifacts
 results/
 amber_runs/
-benchmarks/figures/
 
 # CMake stuff
 CMakeLists.txt.user

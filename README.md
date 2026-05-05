@@ -124,6 +124,13 @@ Note to myself: Compilation code for me
 3. updated these results in slides shared with you!
 4. updated van der waals term calculation to fix an error
 
+### ML 2026-05-04 log
+* Introduced python wrappers to (1) run the C++ code and (2) plot the results 
+* `benchmarks/run_parity.py`: pass a list of molecules to to `run_AMBER_benchmarking_simple.sh` for the AMBER reference run and to `./build/amber_ff` for our custom run. Then, parse the AMBER file output to HDF5 format (which the custom implementation also now saves results as, following our homeworks). After all molecules finish, it calls `plot_parity.plot_all`.
+* `benchmarks/plot_parity.py`: Loads the the .h5 files from results/, then for each of the 5 energy terms (bonds, angles, dihedrals, vdW, total), makes the parity plot. Can invoke as a standalone to re-plot existing .h5 files.                            
+* Made `run_AMBER_benchmarking_simple.sh` portable: `AMBERHOME` defaults to `$HOME/miniconda3/envs/ambertools` instead of hard-coded path. Dropped the macOS-only `DYLD_LIBRARY_PATH` line.
+* Produced parity figures for ethane through n-hexane in `benchmarks/figures/`
+
 ### Next steps
 * Complete atom typing so we can do more molecules 
 * think about what next/ how to present results now that we can calculate energies
