@@ -41,7 +41,6 @@ H -0.507699 -1.155662 -0.879360
 * Given that `gaff2.dat` is this monolith of parameters, of which we only need a small subset, I extracted just the rows relevant to saturated hydrocarbons. The smaller parameter file is `hydrocarbons.dat`, where parameter sections are delimited by bracketed headers to help with parsing.
 * Wrote a parser for `hydrocarbons.dat` in `read_params.cpp`. A single function, `load_params(filepath)`, uses 4 helper functions (one per parameter struct). 
 
-
 ### JG 2026-04-29 log 
 * implemented the basic version of a molecule as a graph structure - nodes as the atoms and egdes as the bonds associated with it. 
     * on initialization, it needs functions that identify which atoms are bonded (is there a threshold to use?)
@@ -117,7 +116,6 @@ Note to myself: Compilation code for me
 3. merged branches jahnavi-misc and jahnavi_updates (no reason why separate)
 
 
-
 ### JG 2026-05-04 log
 1. Over the weekend, I worked on installing the actual AMBER FF package, and got it running to calculate energies. I have a bash file that you can run that reads the output file and prints the final energy readout. Important thing is to compare term by term and not the total energy as electrostatic interactions are not accounted for in our implementation (those params not in .gaff file)
 2. updated gaff.dat file (and hydrocarbons.dat) to the version used by the amber package that I installed (so that results match exactly). 
@@ -132,6 +130,3 @@ Note to myself: Compilation code for me
 * Modern FF do not use the explicit H bond term. 
 * where do the A, B, C, D parameters come from? I don't think we read them from the .dat
     * Matthew's note (2026-04-30): I addressed $A$ and $B$ in my log, good question for C and D. I think as you noted above, various versions of AMBER do not have an explicit hydrogen bonding term. Rather, many parameters have the H-bonding folded into the parameter itself. I forget which is the case for our .dat file, but for now I propose we don't have the H-bonding term for simplicity. 
-
-
-
