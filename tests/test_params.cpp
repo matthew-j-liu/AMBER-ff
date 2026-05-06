@@ -29,7 +29,7 @@ TEST(read_params, ThrowsBadAtomCount) {
 }
 
 
-// ZERO ATOMS
+// RANDOM SAMPLING OF PARAMS
 // create a new ip file for this test case 
 TEST(read_params, HasOneAtomOnly) {
     auto mol = read_xyz("h_atom.xyz");  // add single h atom file to input molecules 
@@ -42,9 +42,9 @@ TEST(read_xyz, HasOneAtomOnly) {
     EXPECT_EQ(mol.num_atoms(), 1);
     EXPECT_EQ(mol.num_bonds(), 0);
     EXPECT_EQ(mol.atoms[0].element, "C");
-    EXPECT_EQ(mol.atoms[0].position[0], 0.0);
-    EXPECT_EQ(mol.atoms[0].position[1], 0.0);
-    EXPECT_EQ(mol.atoms[0].position[2], 0.0);
+    EXPECT_FLOAT_EQ(mol.atoms[0].position[0], 0.0);
+    EXPECT_FLOAT_EQ(mol.atoms[0].position[1], 0.0);
+    EXPECT_FLOAT_EQ(mol.atoms[0].position[2], 0.0);
 }
 
 TEST(read_xyz, HasAtleastOneAtom) {
@@ -80,9 +80,9 @@ TEST(read_xyz, IsEthaneElementID) {
 
 TEST(read_xyz, EthaneCarbonPosition) {
     auto mol = read_xyz(MOL + "ethane.xyz");
-    EXPECT_EQ(mol.atoms[0].position[0],  0.0);
-    EXPECT_EQ(mol.atoms[0].position[1],  0.761550);
-    EXPECT_EQ(mol.atoms[0].position[2],  0.0);
+    EXPECT_FLOAT_EQ(mol.atoms[0].position[0],  0.0);
+    EXPECT_FLOAT_EQ(mol.atoms[0].position[1],  0.761550);
+    EXPECT_FLOAT_EQ(mol.atoms[0].position[2],  0.0);
 }
 
 TEST(read_xyz, IsEthaneAmberTypeAssignment) {

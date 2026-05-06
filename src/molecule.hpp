@@ -21,9 +21,10 @@ struct MoleculeGraph
     std::vector<Atom>              atoms;      // nodes
     std::vector<std::vector<int>>  adjacency;  // edges
 
+    MoleculeGraph();
     int  add_atom(const Atom& a);
     void add_bond(int i, int j);
-    const std::vector<int>& neighbors(int i) const;
+    const std::vector<int>& bonds(int i) const;
     int  num_atoms() const;
-    int  num_bonds() const;
+    int  num_total_bonds() const;
 };

@@ -29,16 +29,12 @@ TEST(read_xyz, ThrowsBadAtomCount) {
 }
 
 
-// 
 // ZERO ATOMS
 // create a new ip file for this test case 
 TEST(read_xyz, HasOneAtomOnly) {
     auto mol = read_xyz("h_atom.xyz");  // add single h atom file to input molecules 
     EXPECT_EQ(mol.num_atoms(), 0);
-    EXPECT_EQ(mol.num_bonds(), 0);
-    // ??? missing - so throws an exception
-}
-
+    EXPECT_EQ(mol.num_b 
 
 // create a new ip file for this test case
 TEST(read_xyz, HasOneAtomOnly) {

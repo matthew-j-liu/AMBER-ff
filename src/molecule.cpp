@@ -4,6 +4,11 @@
 #include <stdexcept>
 #include <unordered_map>
 
+// in the constructor add num_atoms = num_bonds = 0 (default zero initialize)
+MoleculeGraph::MoleculeGraph(){
+    
+}
+
 int MoleculeGraph::add_atom(const Atom& a)
 {
     atoms.push_back(a);

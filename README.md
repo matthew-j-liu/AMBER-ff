@@ -122,6 +122,14 @@ Note to myself: Compilation code for me
 3. updated these results in slides shared with you!
 4. updated van der waals term calculation to fix an error
 
+
+### JG 2026-05-06 log
+1. mols_utils replaces atom_typing files. It includes functions for bond detection, and amber_type assignment. 
+- selected_atoms.dat file is the expansion of hydrocarbon.dat to include more molecules. AI generated from gaff2.dat, uses the same format as hydrocarbon.dat so load_params does not need to be changed. 
+- first bond between 2 atoms is assigned if the interatomic distance falls within a range of 0.9*min - 1.1*max of the bond distances expected between all atom types of an element. Yet to test this with lots of actual xyz files but this is my hypothesis hoping that it works. 
+- then the amber types are assigned to each atom. This is by calling functions for hydrogens and halogens first (since those are fixed). Then oxygen and nitrogen - which check number of bonds, first assuming single bonds. Then remaining bonds added to C.  
+
+
 ### Next steps
 * Complete atom typing so we can do more molecules 
 * think about what next/ how to present results now that we can calculate energies

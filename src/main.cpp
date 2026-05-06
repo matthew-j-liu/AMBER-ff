@@ -2,7 +2,7 @@
 #include "read_xyz.hpp"
 #include "ff_params.hpp"
 #include "read_params.hpp"
-#include "atom_typing.hpp"
+#include "mol_utils.hpp"
 #include "ff.hpp"
 #include <iostream>
 #include <stdexcept>
@@ -22,7 +22,6 @@ int main(int argc, char** argv)
 
     // parse molecule (first argument in CLI)
     MoleculeGraph mol = read_xyz(argv[1]);
-    assign_amber_types(mol);
     std::cout << "Molecule loaded!" << std::endl << std::endl;
     std::cout << "atoms: " << mol.num_atoms() << std::endl;
     std::cout << "bonds: " << mol.num_bonds() << std::endl << std::endl;
