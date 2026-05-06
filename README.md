@@ -133,6 +133,7 @@ Note to myself: Compilation code for me
 ### Next steps
 * Complete atom typing so we can do more molecules 
 * think about what next/ how to present results now that we can calculate energies
+* check the fpp functions
 
 ### Notes/ ongoing questions
 * Modern FF do not use the explicit H bond term. 
