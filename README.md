@@ -135,12 +135,16 @@ Note to myself: Compilation code for me
 
 ### JG 2026-05-07 log
 1. Tested molecules. input_molecules_copy/list_of_molecules.md has the updated list of molecules tested. We can't do aromatics, conjugated alkenes, or cyclic hydrocarbons right now (needs a cyclic sp2 parameter). Aldehydes, amines are not too good, will have to test to see where it is going wrong. 
+2. Could test with more halogens and other molecules overall
 
-2. Could test with more halogens. 
+3. Code Cleanup
+- Combined read_xyz.hpp and read_params.hpp to parsing.hpp as both just had one function each 
+- Documentation / comments above functions / variable renaming. Especially for energy functions and amber_type
+- Added wildcard (“X”) lookup to dihedrals param search, since many of the params use that 
 
 ### Next steps
 * testing and results presentation 
-* code cleanup and documentation 
+* maybe if time, improvements to C backbone (amber type assignment) - make it faster, fewer loops
 
 ### Notes/ ongoing questions
 * Modern FF do not use the explicit H bond term. 
