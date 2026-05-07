@@ -34,3 +34,19 @@ double dihedral_deg(const arma::vec& pi, const arma::vec& pj,
     return phi;
 }
 
+// Atom overloads — delegate to the arma::vec versions above
+double dist(const Atom& a, const Atom& b)
+{
+    return dist(a.position, b.position);
+}
+
+double angle_deg(const Atom& ai, const Atom& aj, const Atom& ak)
+{
+    return angle_deg(ai.position, aj.position, ak.position);
+}
+
+double dihedral_deg(const Atom& ai, const Atom& aj, const Atom& ak, const Atom& al)
+{
+    return dihedral_deg(ai.position, aj.position, ak.position, al.position);
+}
+

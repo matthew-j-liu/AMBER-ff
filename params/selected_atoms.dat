@@ -1,8 +1,10 @@
-# Selected AMBER GAFF2 parameters: c c2 c3 hc hn ho n n3 o oh cl br
+# Selected AMBER GAFF2 parameters: c c2 c3 c1 hc ha hn ho n n3 o oh cl br
 # Source: gaff2.dat (AmberTools 25, Version 2.2.20, March 2021)
 #
 # Atom types
 #   c   = Sp2 C carbonyl group
+#   c1  = Sp C (alkyne, nitrile)
+#   ha  = H bonded to sp2/sp C
 #   c2  = Sp2 C (non-aromatic)
 #   c3  = Sp3 C
 #   hc  = H bonded to aliphatic C without electronegative groups
@@ -26,7 +28,11 @@ br n   130.3600  1.8645
 br n3   110.4000  1.9520
 br o   193.6000  1.8000
 br oh   145.4000  1.8690
+c1 c1   699.1300  1.2095
+c1 c3   284.5800  1.4656
+c1 ha   392.4300  1.0666
 c2 c2   436.0000  1.3379
+c2 ha   357.2900  1.0882
 c2 c3   248.4000  1.5088
 c2 cl   196.0400  1.7415
 c2 hc   393.9000  1.0870
@@ -90,7 +96,13 @@ br n br   67.2000  116.2000
 br n c3   78.4000  114.5500
 br n c   76.5900  122.0400
 br oh ho   59.1700  101.8400
+c1 c1 c3   53.5800  178.67
+c1 c1 ha   41.0500  179.28
+c1 c3 c3   61.3700  112.02
+c1 c3 hc   45.1300  109.45
 c2 c2 c2   65.4700  124.0800
+c2 c2 ha   46.3700  120.39
+ha c2 ha   34.6600  116.66
 c2 c2 c3   60.8800  124.9500
 c2 c2 cl   64.0800  123.1800
 c2 c2 hc   50.5000  119.7000
@@ -363,6 +375,8 @@ hc o c oh   1   1.1000  180.0000  2
 # vdW term:  E = eps_ij * [(R*_ij/r)^12 - 2*(R*_ij/r)^6]
 # format: type  R_star [A]  epsilon [kcal/mol]
 [vdw]
+c1   1.9525  0.1596
+ha   1.4735  0.0161
 hc   1.4593  0.0208
 hn   0.6210  0.0100
 ho   0.3019  0.0047

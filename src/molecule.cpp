@@ -1,5 +1,6 @@
 #include "molecule.hpp"
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <unordered_map>
@@ -51,9 +52,9 @@ std::vector<std::array<size_t, 3>> MoleculeGraph::find_all_bond_angle_triplets()
     std::vector<std::array<size_t, 3>> result;
     for (size_t j = 0; j < num_atoms(); j++) {
         const auto& nbrs = bonds[j];
-        for (size_t a = 0; a < nbrs.size(); a++)
-            for (size_t b = a + 1; b < nbrs.size(); b++)
-                result.push_back({nbrs[a], j, nbrs[b]});
+        for (size_t i = 0; i < nbrs.size(); i++)
+            for (size_t k = i + 1; k < nbrs.size(); k++)
+                result.push_back({nbrs[i], j, nbrs[k]});
     }
     return result;
 }
@@ -74,4 +75,20 @@ std::vector<std::array<size_t, 4>> MoleculeGraph::find_all_torsion_quadruplets()
         }
     }
     return result;
+}
+
+
+void MoleculeGraph::print_all() const
+{
+    std::cout << "=== Bonds (" << find_all_bonds().size() << ") ===\n";
+    for (const auto& b : find_all_bonds())
+        std::cout << b[0] << " -- " << b[1] << "\n";
+
+    std::cout << "\n=== Bond Angle Triplets (" << find_all_bond_angle_triplets().size() << ") ===\n";
+    for (const auto& t : find_all_bond_angle_triplets())
+        std::cout << t[0] << " -- " << t[1] << " -- " << t[2] << "\n";
+
+    std::cout << "\n=== Torsion Quadruplets (" << find_all_torsion_quadruplets().size() << ") ===\n";
+    for (const auto& q : find_all_torsion_quadruplets())
+        std::cout << q[0] << " -- " << q[1] << " -- " << q[2] << " -- " << q[3] << "\n";
 }

@@ -4,42 +4,76 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 
+# 10 benchmark molecules — c, c2, c3, c1, hc, ha, ho, oh, cl only (no c6/ce)
+BENCHMARK_MOLECULES=(
+  "ethane"
+  "propane"
+  "n-butane"
+  "n-pentane"
+  "n-hexane"
+)
+
 usage() {
   echo "Usage: $0 [molecule] [params]"
-  echo "  molecule  molecule name (e.g. ethane) or full path to .xyz file (default: ethane)"
-  echo "  params    params filename (e.g. gaff2.dat) or full path to .dat file (default: gaff2.dat)"
+  echo "  molecule  molecule name or full path to .xyz file (default: loops all benchmark molecules)"
+  echo "  params    params filename or full path to .dat file (default: selected_atoms.dat)"
   exit 1
 }
 
 [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && usage
 
-# Resolve molecule: accept name, name+extension, or full path
-MOLECULE_ARG="${1:-ethane}"
-if [[ "$MOLECULE_ARG" == /* ]]; then
-  MOLECULE="$MOLECULE_ARG"
+run_molecule() {
+  local MOLECULE_ARG="$1"
+  local PARAMS_ARG="${2:-selected_atoms.dat}"
+
+  local MOLECULE
+  if [[ "$MOLECULE_ARG" == /* || "$MOLECULE_ARG" == *.xyz ]]; then
+    MOLECULE="$MOLECULE_ARG"
+  else
+    local NAME="${MOLECULE_ARG%.xyz}"
+    # Search subdirectories first, fall back to flat layout
+    local found
+    found=$(find "$SCRIPT_DIR/input_molecules_copy" -name "${NAME}.xyz" | head -1)
+    MOLECULE="${found:-$SCRIPT_DIR/input_molecules_copy/${NAME}.xyz}"
+  fi
+
+  local PARAMS
+  if [[ "$PARAMS_ARG" == /* ]]; then
+    PARAMS="$PARAMS_ARG"
+  else
+    PARAMS="$SCRIPT_DIR/params/${PARAMS_ARG}"
+  fi
+
+  if [[ ! -f "$MOLECULE" ]]; then
+    echo "Warning: molecule file not found: $MOLECULE, skipping."
+    return 1
+  fi
+
+  if [[ ! -f "$PARAMS" ]]; then
+    echo "Error: params file not found: $PARAMS"
+    return 1
+  fi
+
+  echo ""
+  echo "==> Running: amber_ff $(basename "$MOLECULE") with $(basename "$PARAMS")"
+  "$BUILD_DIR/amber_ff" "$MOLECULE" "$PARAMS"
+}
+
+# Usage: ./run_AMBER_custom.sh [molecule] [params]
+# With no arguments, loops all benchmark molecules using selected_atoms.dat.
+if [[ $# -ge 1 ]]; then
+  run_molecule "${1}" "${2:-selected_atoms.dat}"
 else
-  NAME="${MOLECULE_ARG%.xyz}"
-  MOLECULE="$SCRIPT_DIR/input_molecules/${NAME}.xyz"
-fi
+  FAILED=()
+  for mol in "${BENCHMARK_MOLECULES[@]}"; do
+    run_molecule "$mol" "selected_atoms.dat" || FAILED+=("$mol")
+  done
 
-# Resolve params: accept filename or full path
-PARAMS_ARG="${2:-hydrocarbons.dat}"
-if [[ "$PARAMS_ARG" == /* ]]; then
-  PARAMS="$PARAMS_ARG"
-else
-  PARAMS="$SCRIPT_DIR/params/${PARAMS_ARG}"
+  echo ""
+  echo "=== LOOP COMPLETE ==="
+  if [[ ${#FAILED[@]} -gt 0 ]]; then
+    echo "Failed molecules: ${FAILED[*]}"
+  else
+    echo "All molecules completed successfully."
+  fi
 fi
-
-if [[ ! -f "$MOLECULE" ]]; then
-  echo "Error: molecule file not found: $MOLECULE"
-  exit 1
-fi
-
-if [[ ! -f "$PARAMS" ]]; then
-  echo "Error: params file not found: $PARAMS"
-  exit 1
-fi
-
-echo "==> Running: amber_ff $MOLECULE $PARAMS"
-echo ""
-"$BUILD_DIR/amber_ff" "$MOLECULE" "$PARAMS"

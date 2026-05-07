@@ -2,7 +2,6 @@
 #include "ff.hpp"
 #include <cmath>
 #include <set>
-#include <armadillo>
 
 // E = K_r * (r - r_eq)^2
 double bond_streching_energy(double bond_length, double K_r, double r_eq)
@@ -19,7 +18,7 @@ double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
         size_t i = bond[0], j = bond[1];
         const std::string& ti = mol.atoms[i].amber_type;
         const std::string& tj = mol.atoms[j].amber_type;
-        double r = dist(mol.atoms[i].position, mol.atoms[j].position);
+        double r = dist(mol.atoms[i], mol.atoms[j]);
         auto it = ff.bonds.find({ti, tj});
         if (it == ff.bonds.end()) it = ff.bonds.find({tj, ti});
         if (it == ff.bonds.end()) continue;
@@ -44,9 +43,7 @@ double calculate_angles_term(const MoleculeGraph& mol, const ForceField& ff)
         const std::string& ti = mol.atoms[i].amber_type;
         const std::string& tj = mol.atoms[j].amber_type;
         const std::string& tk = mol.atoms[k].amber_type;
-        double theta = angle_deg(mol.atoms[i].position,
-                                  mol.atoms[j].position,
-                                  mol.atoms[k].position);
+        double theta = angle_deg(mol.atoms[i], mol.atoms[j], mol.atoms[k]);
         auto it = ff.angles.find({ti, tj, tk});
         if (it == ff.angles.end()) it = ff.angles.find({tk, tj, ti});
         if (it == ff.angles.end()) continue;
@@ -75,8 +72,7 @@ double calculate_dihedrals_term(const MoleculeGraph& mol, const ForceField& ff)
         const std::string& tj = mol.atoms[j].amber_type;
         const std::string& tk = mol.atoms[k].amber_type;
         const std::string& tl = mol.atoms[l].amber_type;
-        double phi = dihedral_deg(mol.atoms[i].position, mol.atoms[j].position,
-                                   mol.atoms[k].position, mol.atoms[l].position);
+        double phi = dihedral_deg(mol.atoms[i], mol.atoms[j], mol.atoms[k], mol.atoms[l]);
         auto it = ff.dihedrals.find({ti, tj, tk, tl});
         if (it == ff.dihedrals.end()) it = ff.dihedrals.find({tl, tk, tj, ti});
         if (it == ff.dihedrals.end()) continue;
@@ -134,52 +130,11 @@ double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceFie
             double eps_ij    = std::sqrt(it_i->second.epsilon * it_j->second.epsilon);
             double A = eps_ij * std::pow(R_star_ij, 12);
             double B = 2.0 * eps_ij * std::pow(R_star_ij, 6);
-            double r = dist(mol.atoms[i].position, mol.atoms[j].position);
+            double r = dist(mol.atoms[i], mol.atoms[j]);
 
             double e = vdw_energy(r, A, B);
             if (scaled_14.count(key)) e *= 0.5; // GAFF scnb = 2 → factor 1/2
             total += e;
-        }
-    }
-    return total;
-}
-
-// E = C/r^12 - D/r^10
-double h_bond_energy(double r, double C, double D)
-{
-    double r10 = std::pow(r, 10);
-    return C / (r10 * r * r) - D / r10;
-}
-
-double calculate_hbond_term(const MoleculeGraph& mol, const ForceField& ff)
-{
-    double total = 0.0;
-    size_t n = mol.num_atoms();
-    for (size_t i = 0; i < n; ++i)
-    {
-        for (size_t j = i + 1; j < n; ++j)
-        {
-            bool i_is_H = (mol.atoms[i].element == "H");
-            bool j_is_H = (mol.atoms[j].element == "H");
-            if (!i_is_H && !j_is_H) continue;
-
-            bool bonded = false;
-            for (size_t nb : mol.get_bonds(i))
-                if (nb == j) { bonded = true; break; }
-            if (bonded) continue;
-
-            const std::string& ti = mol.atoms[i].amber_type;
-            const std::string& tj = mol.atoms[j].amber_type;
-            auto it_i = ff.vdw.find(ti);
-            auto it_j = ff.vdw.find(tj);
-            if (it_i == ff.vdw.end() || it_j == ff.vdw.end()) continue;
-
-            double R_star_ij = it_i->second.R_star + it_j->second.R_star;
-            double eps_ij    = std::sqrt(it_i->second.epsilon * it_j->second.epsilon);
-            double C = eps_ij * std::pow(R_star_ij, 12);
-            double D = eps_ij * std::pow(R_star_ij, 10);
-            double r = dist(mol.atoms[i].position, mol.atoms[j].position);
-            total += h_bond_energy(r, C, D);
         }
     }
     return total;

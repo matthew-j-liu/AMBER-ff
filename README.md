@@ -127,7 +127,10 @@ Note to myself: Compilation code for me
 1. mols_utils replaces atom_typing files. It includes functions for bond detection, and amber_type assignment. 
 - selected_atoms.dat file is the expansion of hydrocarbon.dat to include more molecules. AI generated from gaff2.dat, uses the same format as hydrocarbon.dat so load_params does not need to be changed. 
 - first bond between 2 atoms is assigned if the interatomic distance falls within a range of 0.9*min - 1.1*max of the bond distances expected between all atom types of an element. Yet to test this with lots of actual xyz files but this is my hypothesis hoping that it works. 
-- then the amber types are assigned to each atom. This is by calling functions for hydrogens and halogens first (since those are fixed). Then oxygen and nitrogen - which check number of bonds, first assuming single bonds. Then remaining bonds added to C.  
+- then the amber types are assigned to each atom. This is by calling functions for halogens first (since those are fixed). Then the carbon backbone based on number of bonds, then oxygen and nitrogen. Then H at last based on the atom it is attached to. 
+
+2. Added a bunch of new molecules from https://github.com/nutjunkie/IQmol/tree/master/share/fragments/Molecules and https://www.skies-village.it/webtools/databases/LCB25/
+3. Testing now....... 
 
 
 ### Next steps

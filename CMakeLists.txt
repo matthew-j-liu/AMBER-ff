@@ -15,19 +15,22 @@ FetchContent_MakeAvailable(googletest)
 
 find_package(Armadillo REQUIRED)
 
-add_library(amber_ff_lib 
+add_library(amber_ff_lib
     src/molecule.cpp
     src/read_xyz.cpp
     src/read_params.cpp
     src/ff.cpp
-    src/util.cpp
-    src/atom_typing.cpp
+    src/geom_util.cpp
+    src/mol_utils.cpp
 )
 target_include_directories(amber_ff_lib PUBLIC src ${ARMADILLO_INCLUDE_DIRS})
 target_link_libraries(amber_ff_lib PUBLIC ${ARMADILLO_LIBRARIES})
 
 add_executable(amber_ff src/main.cpp)
 target_link_libraries(amber_ff PRIVATE amber_ff_lib)
+
+add_executable(test_topology tests/test_topology.cpp)
+target_link_libraries(test_topology PRIVATE amber_ff_lib)
 
 # Test Cases (disabled)
 # enable_testing()

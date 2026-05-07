@@ -43,7 +43,7 @@ int main(int argc, char** argv)
                   << " | AMBER type: " << a.amber_type << " | "
                   << "neighbors={";
 
-        std::vector<int> neighbors = mol.neighbors(i);
+        const auto& neighbors = mol.get_bonds(i);
 
         for (size_t k = 0; k < neighbors.size(); k++)
         {

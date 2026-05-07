@@ -33,4 +33,6 @@ struct MoleculeGraph
     std::vector<std::array<size_t, 2>> find_all_bonds() const;
     std::vector<std::array<size_t, 3>> find_all_bond_angle_triplets() const;
     std::vector<std::array<size_t, 4>> find_all_torsion_quadruplets() const;
+
+    void print_all() const;
 };
