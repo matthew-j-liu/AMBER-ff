@@ -1,4 +1,4 @@
-#include "util.hpp"
+#include "geom_util.hpp"
 #include <algorithm>
 
 // Calculate the bond distance, bond angle and dihedral angles

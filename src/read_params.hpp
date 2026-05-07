@@ -9,7 +9,6 @@
 // Parses parameter file and returns a populated ForceField
 ForceField load_params(const std::string& filepath);
 
-
 // Reference bond lengths (Angstroms) from gaff2.dat, keyed by sorted element pair.
 // Each entry lists all bond orders for that pair (e.g. C-C: triple, double, single).
 // Keys are sorted alphabetically so lookup is order-independent.

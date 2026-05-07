@@ -1,4 +1,5 @@
 #include "mol_utils.hpp"
+#include "molecule.hpp"
 #include "read_params.hpp"
 #include <algorithm>
 #include <stdexcept>
@@ -31,6 +32,29 @@ void assign_bonds(MoleculeGraph& mol)
             }
         }
     }
+}
+
+// returns all the bonds in the molecule as a set 
+const std::set<std::vector<size_t>>& find_all_bonds(Atom& a) const 
+{
+    for (size_t i = 0; i < this->num_atoms(); i ++) 
+    {
+
+        
+    }
+
+}
+
+// returns all the bond angle triplets in the molecule as a set
+const std::set<std::vector<size_t>>& find_all_bond_angle_triplets(Atom& a) const
+{
+
+}
+
+// returns all the dihedral quadruplets in the molecule as a set
+const std::set<std::vector<size_t>>& find_all_torsion_quadruplets(Atom& a) const
+{
+
 }
 
 

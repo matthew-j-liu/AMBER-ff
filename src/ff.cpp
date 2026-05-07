@@ -1,18 +1,4 @@
-
-/*
-Loop through atoms -
-1. for bonds term, loop through all bonded atoms, from the MoleculeGraph struct
-2. for the angles term,
-3. for the dihedrals
-4. for the vdw term, all non bonded atoms
-5. for the h-bonds term, all h-bonded atoms, identified by atomic number of the atom
-
-within the loops, calculate the individual terms,
-use the read_params files for getting values of the parameters corresponding to each atom type and then structural info from the ff_params.hpp
-formula used are the original amber force field terms
-*/
-
-#include "util.hpp"
+#include "geom_util.hpp"
 #include "ff.hpp"
 #include <cmath>
 #include <set>
@@ -25,23 +11,19 @@ double bond_streching_energy(double bond_length, double K_r, double r_eq)
     return K_r * dr * dr;
 }
 
-// include only bonded atoms
 double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
-    for (int i = 0; i < mol.num_atoms(); ++i)
+    for (const auto& bond : mol.find_all_bonds())
     {
-        for (int j : mol.neighbors(i))
-        {
-            if (j <= i) continue; // each bond once
-            const std::string& ti = mol.atoms[i].amber_type;
-            const std::string& tj = mol.atoms[j].amber_type;
-            double r = dist(mol.atoms[i].position, mol.atoms[j].position);
-            auto it = ff.bonds.find({ti, tj});
-            if (it == ff.bonds.end()) it = ff.bonds.find({tj, ti});
-            if (it == ff.bonds.end()) continue;
-            total += bond_streching_energy(r, it->second.K_r, it->second.r_eq);
-        }
+        size_t i = bond[0], j = bond[1];
+        const std::string& ti = mol.atoms[i].amber_type;
+        const std::string& tj = mol.atoms[j].amber_type;
+        double r = dist(mol.atoms[i].position, mol.atoms[j].position);
+        auto it = ff.bonds.find({ti, tj});
+        if (it == ff.bonds.end()) it = ff.bonds.find({tj, ti});
+        if (it == ff.bonds.end()) continue;
+        total += bond_streching_energy(r, it->second.K_r, it->second.r_eq);
     }
     return total;
 }
@@ -53,30 +35,22 @@ double bond_rotation_energy(double angle_deg, double K_theta, double theta_eq_de
     return K_theta * dtheta * dtheta;
 }
 
-// only adjacent bonds
 double calculate_angles_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
-    for (int j = 0; j < mol.num_atoms(); ++j)
+    for (const auto& triplet : mol.find_all_bond_angle_triplets())
     {
-        const auto& nbrs = mol.neighbors(j);
-        for (int a = 0; a < (int)nbrs.size(); ++a)
-        {
-            for (int b = a + 1; b < (int)nbrs.size(); ++b)
-            {
-                int i = nbrs[a], k = nbrs[b];
-                const std::string& ti = mol.atoms[i].amber_type;
-                const std::string& tj = mol.atoms[j].amber_type;
-                const std::string& tk = mol.atoms[k].amber_type;
-                double theta = angle_deg(mol.atoms[i].position,
-                                         mol.atoms[j].position,
-                                         mol.atoms[k].position);
-                auto it = ff.angles.find({ti, tj, tk});
-                if (it == ff.angles.end()) it = ff.angles.find({tk, tj, ti});
-                if (it == ff.angles.end()) continue;
-                total += bond_rotation_energy(theta, it->second.K_theta, it->second.theta_eq);
-            }
-        }
+        size_t i = triplet[0], j = triplet[1], k = triplet[2];
+        const std::string& ti = mol.atoms[i].amber_type;
+        const std::string& tj = mol.atoms[j].amber_type;
+        const std::string& tk = mol.atoms[k].amber_type;
+        double theta = angle_deg(mol.atoms[i].position,
+                                  mol.atoms[j].position,
+                                  mol.atoms[k].position);
+        auto it = ff.angles.find({ti, tj, tk});
+        if (it == ff.angles.end()) it = ff.angles.find({tk, tj, ti});
+        if (it == ff.angles.end()) continue;
+        total += bond_rotation_energy(theta, it->second.K_theta, it->second.theta_eq);
     }
     return total;
 }
@@ -94,36 +68,24 @@ double bond_torsion_energy(double phi_deg, const std::vector<DihedralParams>& te
 double calculate_dihedrals_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
-    for (int j = 0; j < mol.num_atoms(); ++j)
+    for (const auto& quad : mol.find_all_torsion_quadruplets())
     {
-        for (int k : mol.neighbors(j))
-        {
-            if (k <= j) continue; // each central bond once
-            for (int i : mol.neighbors(j))
-            {
-                if (i == k) continue;
-                for (int l : mol.neighbors(k))
-                {
-                    if (l == j || l == i) continue;
-                    const std::string& ti = mol.atoms[i].amber_type;
-                    const std::string& tj = mol.atoms[j].amber_type;
-                    const std::string& tk = mol.atoms[k].amber_type;
-                    const std::string& tl = mol.atoms[l].amber_type;
-                    double phi = dihedral_deg(mol.atoms[i].position, mol.atoms[j].position,
-                                              mol.atoms[k].position, mol.atoms[l].position);
-                    auto it = ff.dihedrals.find({ti, tj, tk, tl});
-                    if (it == ff.dihedrals.end()) it = ff.dihedrals.find({tl, tk, tj, ti});
-                    if (it == ff.dihedrals.end()) continue;
-                    total += bond_torsion_energy(phi, it->second);
-                }
-            }
-        }
+        size_t i = quad[0], j = quad[1], k = quad[2], l = quad[3];
+        const std::string& ti = mol.atoms[i].amber_type;
+        const std::string& tj = mol.atoms[j].amber_type;
+        const std::string& tk = mol.atoms[k].amber_type;
+        const std::string& tl = mol.atoms[l].amber_type;
+        double phi = dihedral_deg(mol.atoms[i].position, mol.atoms[j].position,
+                                   mol.atoms[k].position, mol.atoms[l].position);
+        auto it = ff.dihedrals.find({ti, tj, tk, tl});
+        if (it == ff.dihedrals.end()) it = ff.dihedrals.find({tl, tk, tj, ti});
+        if (it == ff.dihedrals.end()) continue;
+        total += bond_torsion_energy(phi, it->second);
     }
     return total;
 }
 
 // E = A/r^12 - B/r^6
-// A = epsilon_ij * R_ij^12, B = epsilon_ij * R_ij^6
 double vdw_energy(double r, double A, double B)
 {
     double r6 = std::pow(r, 6);
@@ -133,47 +95,31 @@ double vdw_energy(double r, double A, double B)
 double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
-    int n = mol.num_atoms();
+    size_t n = mol.num_atoms();
 
     // AMBER excludes 1-2 and 1-3 pairs; 1-4 pairs are scaled by 0.5 (GAFF scee/scnb)
-    std::set<std::pair<int,int>> excluded;
-    std::set<std::pair<int,int>> scaled_14;
+    std::set<std::pair<size_t, size_t>> excluded;
+    std::set<std::pair<size_t, size_t>> scaled_14;
 
-    for (int j = 0; j < n; ++j)
+    for (const auto& bond : mol.find_all_bonds())
+        excluded.insert({bond[0], bond[1]});
+
+    for (const auto& triplet : mol.find_all_bond_angle_triplets())
     {
-        // 1-2 exclusions
-        for (int i : mol.neighbors(j))
-            if (i > j) excluded.insert({j, i});
-
-        // 1-3 exclusions: any two neighbors of j
-        const auto& nbrs = mol.neighbors(j);
-        for (int a = 0; a < (int)nbrs.size(); ++a)
-            for (int b = a + 1; b < (int)nbrs.size(); ++b)
-                excluded.insert({std::min(nbrs[a], nbrs[b]), std::max(nbrs[a], nbrs[b])});
+        size_t i = triplet[0], k = triplet[2];
+        excluded.insert({std::min(i, k), std::max(i, k)});
     }
 
-    // 1-4 pairs: ends of any i-j-k-l path
-    for (int j = 0; j < n; ++j)
+    for (const auto& quad : mol.find_all_torsion_quadruplets())
     {
-        for (int k : mol.neighbors(j))
-        {
-            if (k <= j) continue;
-            for (int i : mol.neighbors(j))
-            {
-                if (i == k) continue;
-                for (int l : mol.neighbors(k))
-                {
-                    if (l == j || l == i) continue;
-                    auto key = std::make_pair(std::min(i, l), std::max(i, l));
-                    if (!excluded.count(key)) scaled_14.insert(key);
-                }
-            }
-        }
+        size_t i = quad[0], l = quad[3];
+        auto key = std::make_pair(std::min(i, l), std::max(i, l));
+        if (!excluded.count(key)) scaled_14.insert(key);
     }
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
-        for (int j = i + 1; j < n; ++j)
+        for (size_t j = i + 1; j < n; ++j)
         {
             auto key = std::make_pair(i, j);
             if (excluded.count(key)) continue;
@@ -198,7 +144,6 @@ double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceFie
     return total;
 }
 
-// Weak explicit H-bond term
 // E = C/r^12 - D/r^10
 double h_bond_energy(double r, double C, double D)
 {
@@ -206,21 +151,20 @@ double h_bond_energy(double r, double C, double D)
     return C / (r10 * r * r) - D / r10;
 }
 
-
 double calculate_hbond_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
-    int n = mol.num_atoms();
-    for (int i = 0; i < n; ++i)
+    size_t n = mol.num_atoms();
+    for (size_t i = 0; i < n; ++i)
     {
-        for (int j = i + 1; j < n; ++j)
+        for (size_t j = i + 1; j < n; ++j)
         {
             bool i_is_H = (mol.atoms[i].element == "H");
             bool j_is_H = (mol.atoms[j].element == "H");
             if (!i_is_H && !j_is_H) continue;
 
             bool bonded = false;
-            for (int nb : mol.neighbors(i))
+            for (size_t nb : mol.get_bonds(i))
                 if (nb == j) { bonded = true; break; }
             if (bonded) continue;
 

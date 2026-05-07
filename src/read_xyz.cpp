@@ -1,7 +1,7 @@
 #include "read_xyz.hpp"
 #include "read_params.hpp"
 #include "mol_utils.hpp"
-#include "util.hpp"
+#include "geom_util.hpp"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
