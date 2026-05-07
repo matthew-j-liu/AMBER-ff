@@ -130,13 +130,17 @@ Note to myself: Compilation code for me
 - then the amber types are assigned to each atom. This is by calling functions for halogens first (since those are fixed). Then the carbon backbone based on number of bonds, then oxygen and nitrogen. Then H at last based on the atom it is attached to. 
 
 2. Added a bunch of new molecules from https://github.com/nutjunkie/IQmol/tree/master/share/fragments/Molecules and https://www.skies-village.it/webtools/databases/LCB25/
+
 3. Testing now....... 
 
+### JG 2026-05-07 log
+1. Tested molecules. input_molecules_copy/list_of_molecules.md has the updated list of molecules tested. We can't do aromatics, conjugated alkenes, or cyclic hydrocarbons right now (needs a cyclic sp2 parameter). Aldehydes, amines are not too good, will have to test to see where it is going wrong. 
+
+2. Could test with more halogens. 
 
 ### Next steps
-* Complete atom typing so we can do more molecules 
-* think about what next/ how to present results now that we can calculate energies
-* check the fpp functions
+* testing and results presentation 
+* code cleanup and documentation 
 
 ### Notes/ ongoing questions
 * Modern FF do not use the explicit H bond term. 
