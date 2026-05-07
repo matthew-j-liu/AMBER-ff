@@ -1,29 +1,43 @@
+// functions to help identify the geometry of the molecule from the coordinates
+
+/* 
+Improvement ideas:
+- do not loop over all atoms for each element type
+- start with backbone and stick to that only
+- use Boost graph functions for traversal etc (MoleculeGraph should inherit from Boost graphs)
+- make code more generalizable for bond orders
+*/ 
+
 #include "mol_utils.hpp"
 #include "molecule.hpp"
-#include "read_params.hpp"
+#include "parsing.hpp"
 #include "geom_util.hpp"
 #include <algorithm>
 #include <stdexcept>
 #include <string>
 
-// check this function 
 bool is_bond(const Atom& a, const Atom& b)
 {
     std::string e1 = a.element, e2 = b.element;
+    // arrange so lower index is always first
     if (e1 > e2) std::swap(e1, e2);
 
-    auto it = BOND_LENGTHS.find({e1, e2});
-    if (it == BOND_LENGTHS.end()) return false;
+    // std::map.find(), returns iterator to std::pair<key, value>, accessed by first and second
+    // uses hardcoded element wise lookup, not amber_type lookups (as amber type has not been assigned yet)
+    auto actual_bond_length = BOND_LENGTHS.find({e1, e2});
+    if (actual_bond_length == BOND_LENGTHS.end()) return false;
 
-    const auto& refs = it->second;
+    const auto& refs = actual_bond_length->second;
     double lo = *std::min_element(refs.begin(), refs.end()) * 0.9;
     double hi = *std::max_element(refs.begin(), refs.end()) * 1.1;
 
     double d = dist(a, b);
-    return d >= lo && d <= hi;
+    // return true only if d is within range of bond limits
+    return (lo <= d && hi >= d);
 }
 
-
+// loops through all atom pairs and considers it a bond if it lies within 10% of the expected bond lengths
+// lots of possible issues here, but we go with this for now
 void assign_bonds(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++) {
@@ -35,8 +49,45 @@ void assign_bonds(MoleculeGraph& mol)
     }
 }
 
+/*
+Assign amber_types to each atom based on the bonds information we have now in the molecule.
+The element wise order of assignment is important.
+Smarter way is to traverse the backbone and then assign the neighbors as you go, instead of looping through all atoms each time
 
-static void type_halogens(MoleculeGraph& mol)
+Types Considered-
+#   c   = Sp2 C carbonyl group
+#   c1  = Sp C (alkyne, nitrile)
+#   ha  = H bonded to sp2/sp C
+#   c2  = Sp2 C (non-aromatic)
+#   c3  = Sp3 C
+#   hc  = H bonded to aliphatic C without electronegative groups
+#   hn  = H bonded to N
+#   ho  = H in hydroxyl group
+#   NITROGENS
+#   n4  = Sp3 N with four connected atoms
+#   OXYGENS
+#   o   = O with one connected atom (carbonyl)
+#   oh  = O in hydroxyl group
+#   HALOGENS
+#   cl  = Chlorine
+#   br  = Bromine
+#   f   = Fluorine
+*/
+void assign_amber_types(MoleculeGraph& mol)
+{
+    type_halogens(mol);
+    type_oxygen_and_nitrogen(mol);
+    type_carbon_backbones(mol);
+    type_hydrogens(mol);
+
+    // loop through all atoms, check neighbor element - assign C and neighbor type based on that
+    // traverse_backbone(mol);
+    // confirm assignments are correct
+    // check_bond_orders(mol); 
+}
+
+// Halogens - Cl, Br and F
+void type_halogens(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++)
     {
@@ -44,10 +95,15 @@ static void type_halogens(MoleculeGraph& mol)
             mol.atoms[i].amber_type = "cl";
         else if (mol.atoms[i].element == "Br")
             mol.atoms[i].amber_type = "br";
+        else if (mol.atoms[i].element == "F")
+            mol.atoms[i].amber_type = "f";
     }
 }
 
-static void type_oxygen_and_nitrogen(MoleculeGraph& mol)
+// assigned based on number of bonds
+// Oxygen: single bond means -OH (oh) (no ethers), double bond means C=O (c) 
+// Nitrogen: assume 4 bonds, sp3 (n4)
+void type_oxygen_and_nitrogen(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++)
     {
@@ -56,7 +112,7 @@ static void type_oxygen_and_nitrogen(MoleculeGraph& mol)
 
         if (mol.atoms[i].element == "O")
         {
-            // OH hydroxyl
+            // OH hydroxyl, no ethers. Otherwise check if the neighbor is H or C. 
             if (num_bonds == 2)
                 mol.atoms[i].amber_type = "oh";
             // =O in carbonyl
@@ -65,71 +121,96 @@ static void type_oxygen_and_nitrogen(MoleculeGraph& mol)
         }
         if (mol.atoms[i].element == "N")
         {
-            // sp2 amide N
-            if (num_bonds == 2)
-                mol.atoms[i].amber_type = "n";
-            // sp3 amine/amide N
-            else
-                mol.atoms[i].amber_type = "n3";
+            // sp3 amine N
+            // amides etc not considered here
+            if (num_bonds == 4)
+                mol.atoms[i].amber_type = "n4";
         }
     }
 }
 
 
 /*
-Classify carbons based on bond distances to neighbors.
-Priority: c1 (sp, triple) > c (sp2, C=O/C=N) > c2 (sp2, C=C) > c3 (sp3)
+Classify carbons based on bond distances to neighbors, and number of atoms.
+Priority: c1 (sp, triple) > c (sp2, C=O) > c2 (sp2, C=C) > c3 (sp3)
+Could use other angle information (for example), but not implemented here. Also some issues with circular logic here.
 
-Distance thresholds from gaff2.dat:
+Distance thresholds from selected_atoms.dat/ gaff2.dat:
+(Hardcoded here)
   C-C triple  (c1-c1): ~1.21 A  -> d < 1.28
   C-C double  (c2-c2): ~1.34 A  -> 1.28 <= d < 1.45
-  C=O                : ~1.22 A  -> d < 1.28
-  C-N triple  (c1-n1): ~1.16 A  -> d < 1.22
-  C=N double  (c=n)  : ~1.28 A  -> 1.22 <= d < 1.38
+  C-C single  (c3-c3): ~1.54 A  -> d >= 1.45
+  C=O double  : ~1.22 A  -> d < 1.28
+  C-O single  (c3-oh): ~1.43 A  -> d >= 1.28  (c-oh in carboxylate: ~1.36 A)
+  C-N single  (c3-n4): ~1.52 A  -> any distance (n4 is sp3, no C=N in scope)
 */
 void type_carbon_backbones(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++)
     {
         if (mol.atoms[i].element != "C") continue;
-
-        bool has_triple   = false;
-        bool has_C_double = false;
-        bool has_O_double = false;
-        bool has_N_double = false;
-
-        for (size_t j : mol.get_bonds(i))
+        
+        // assume all carbons are aromatic.
+        if (mol.special_notes == "aromatic")
         {
-            const Atom& nb = mol.atoms[j];
-            double d = dist(mol.atoms[i], nb);
-
-            if (nb.element == "C") {
-                if (d < 1.28)       has_triple   = true;
-                else if (d < 1.45)  has_C_double = true;
-            }
-            else if (nb.element == "O") {
-                if (d < 1.28)       has_O_double = true;
-            }
-            else if (nb.element == "N") {
-                if (d < 1.22)       has_triple   = true;
-                else if (d < 1.38)  has_N_double = true;
-            }
+            mol.atoms[i].amber_type = "ca";
         }
 
-        if (has_triple)
-            mol.atoms[i].amber_type = "c1";
-        else if (has_O_double || has_N_double)
-            mol.atoms[i].amber_type = "c";
-        else if (has_C_double)
-            mol.atoms[i].amber_type = "c2";
+        // assume all carbons are in conjugated double bonds
+        if (mol.special_notes == "conjugated")
+        {
+            mol.atoms[i].amber_type = "ce";
+        }
         else
-            mol.atoms[i].amber_type = "c3";
+        {
+            bool has_triple   = false;
+            bool has_C_double = false;
+            bool has_O_double = false;
+            bool has_C_single = false;
+            bool has_O_single = false;
+            bool has_N_single = false;
+
+            for (size_t j : mol.get_bonds(i))
+            {
+                const Atom& c_neighbor = mol.atoms[j];
+                double d = dist(mol.atoms[i], c_neighbors);
+                // find c_neighbors here and if halogen or H, assign its type. 
+                // Prevents 2 additional loops through the molecule
+
+                if (c_neighbors.element == "C") {
+                    if (d < 1.28)       has_triple   = true;
+                    else if (d < 1.45)  has_C_double = true;
+                    else                has_C_single = true;   
+                }
+                else if (nb.element == "O") {
+                    if (d < 1.28)       has_O_double = true;
+                    // O is now carbonyl (co) 
+                    else                has_O_single = true;   
+                    // O is now hydroxyl or ether
+                }
+                else if (nb.element == "N") {
+                    has_N_single = true;   // n4 is sp3 only — no C=N double/triple in scope 
+                }
+            }
+
+            if (has_triple)
+                mol.atoms[i].amber_type = "c1";
+
+            else if (has_O_double)
+                mol.atoms[i].amber_type = "c";
+
+            else if (has_C_double)
+                mol.atoms[i].amber_type = "c2";
+
+            else
+                mol.atoms[i].amber_type = "c3";
+        }
     }
 }
 
 /*
 Type hydrogens based on what they are bonded to.
-Must run after carbons, oxygens, and nitrogens are typed.
+Must run last.
   hc — H on sp3 C (c3)
   ha — H on sp2/sp C (c, c2, c1)
   ho — H on O
@@ -141,30 +222,22 @@ void type_hydrogens(MoleculeGraph& mol)
     {
         if (mol.atoms[i].element != "H") continue;
 
-        const auto& nbrs = mol.get_bonds(i);
+        const auto& h_neighbors = mol.get_bonds(i);
         if (nbrs.empty()) { mol.atoms[i].amber_type = "H"; continue; }
 
-        const Atom& nb = mol.atoms[nbrs[0]];  // H always has exactly 1 bond
+        const Atom& neighbor = mol.atoms[h_neighbors[0]];  // H always has exactly 1 bond
 
-        if (nb.element == "O")
+        if (neighbor.element == "O")
             mol.atoms[i].amber_type = "ho";
-        else if (nb.element == "N")
+        else if (neighbor.element == "N")
             mol.atoms[i].amber_type = "hn";
-        else if (nb.element == "C") {
-            if (nb.amber_type == "c3")
+        else if (neighbor.element == "C") {
+            if (neighbor.amber_type == "c3")
                 mol.atoms[i].amber_type = "hc";
-            else  // c, c2, c1
+            else  // c, c2, c1, ca
                 mol.atoms[i].amber_type = "ha";
         }
         else
             mol.atoms[i].amber_type = "H";
     }
-}
-
-void assign_amber_types(MoleculeGraph& mol)
-{
-    type_carbon_backbones(mol);      
-    type_oxygen_and_nitrogen(mol);
-    type_halogens(mol);
-    type_hydrogens(mol);            
 }

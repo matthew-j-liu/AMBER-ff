@@ -1,3 +1,8 @@
+/*
+Improvement ideas:
+- MoleculeGraph should inherit from Boost graphs
+*/
+
 #pragma once
 #include <vector>
 #include <string>
@@ -6,7 +11,7 @@
 
 
 // Node in the molecular graph
-struct Atom
+struct Atoms
 {
     std::string element;    // e.g., "H", "C"
     arma::vec   position;   // Angstroms, 3D
@@ -21,6 +26,7 @@ struct MoleculeGraph
 {
     std::vector<Atom> atoms;
     std::vector<std::vector<size_t>> bonds;
+    std::string special_notes; 
 
     void add_atom(const Atom& a);
     void add_bond(size_t i, size_t j);

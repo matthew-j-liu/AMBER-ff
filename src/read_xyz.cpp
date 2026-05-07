@@ -1,5 +1,4 @@
-#include "read_xyz.hpp"
-#include "read_params.hpp"
+#include "parsing.hpp"
 #include "mol_utils.hpp"
 #include "geom_util.hpp"
 #include <algorithm>
@@ -31,8 +30,13 @@ MoleculeGraph read_xyz(const std::string& filepath)
         throw std::runtime_error("Atom count needed on line 1!");
     }
 
-    // line 2: comment (discard, like in the homeworks)
+    /* line 2: comment 
+    // Optional special notes on molecule. 
+    Expected: "conjugated" and "aromatic". "cyclic" - not implemented yet
+    */
     std::getline(f, line);
+    std::istringstream iss(line);
+    mol.special_notes = iss; 
 
     // Lines 3-A: atom rows (element x y z)
     // future: read till end of file and make sure num_atoms matches num lines

@@ -4,6 +4,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "molecule.hpp"
+
 
 
 // Parses parameter file and returns a populated ForceField
@@ -28,3 +30,18 @@ static const std::map<ElemPair, std::vector<double>> BOND_LENGTHS = {
     {{"Br", "C"}, {1.9054, 1.9805}},           // C-Br: sp2, sp3
     {{"C",  "Cl"},{1.7415, 1.8092}},            // C-Cl: sp2, sp3
 };
+
+
+/*
+Reads an .xyz file and returns a MoleculeGraph.
+
+Expected format
+----------------
+    -Line 1: num_atoms
+    -Line 2: comment
+    -Lines 3-A: section for atomic positions
+        -Each line: element x y z
+    -Lines A-Z: section for bonds 
+        -Each line: atom_i atom_j 
+*/
+MoleculeGraph read_xyz(const std::string& filepath);

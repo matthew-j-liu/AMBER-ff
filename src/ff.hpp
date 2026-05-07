@@ -6,7 +6,7 @@
 double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff);
 double calculate_angles_term(const MoleculeGraph& mol, const ForceField& ff);
 double calculate_dihedrals_term(const MoleculeGraph& mol, const ForceField& ff);
-double calculate_electrostatic_vdw_term(const MoleculeGraph& mol, const ForceField& ff);
+double calculate_vdw_term(const MoleculeGraph& mol, const ForceField& ff);
 
 double bond_streching_energy(double bond_length, double K_r, double r_eq);
 double bond_rotation_energy(double angle_deg, double K_theta, double theta_eq_deg);

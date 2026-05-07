@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <unordered_map>
 
+// add a new atom to the molecule
 void MoleculeGraph::add_atom(const Atom& a)
 {
     atoms.push_back(a);
@@ -18,16 +19,21 @@ void MoleculeGraph::add_bond(size_t i, size_t j)
     bonds[j].push_back(i);
 }
 
+// returns the bonds of a specified atom
+// bonds just means bonded atoms, does not specify bond order
 const std::vector<size_t>& MoleculeGraph::get_bonds(size_t i) const
 {
     return bonds.at(i);
 }
 
+// returns total number of atoms
 size_t MoleculeGraph::num_atoms() const
 {
     return atoms.size();
 }
 
+// returns total number of bonds
+// bonds just means bonded atoms, does not specify bond order
 size_t MoleculeGraph::num_bonds() const
 {
     size_t total = 0;
@@ -36,7 +42,11 @@ size_t MoleculeGraph::num_bonds() const
     return total / 2;
 }
 
-// Each bond is emitted once by only including pairs where i < j.
+/*
+Finds all the bonds in the molecule, returns as doublet of atom indices
+each bond is emitted once by only including pairs where i < j.
+bonds just means bonded atoms, does not specify bond order
+*/
 std::vector<std::array<size_t, 2>> MoleculeGraph::find_all_bonds() const
 {
     std::vector<std::array<size_t, 2>> result;
@@ -47,6 +57,10 @@ std::vector<std::array<size_t, 2>> MoleculeGraph::find_all_bonds() const
     return result;
 }
 
+/*
+Finds all the triplets that make a bond angle in the molecule, returns as triplets of atom indices
+each angle is emitted once by only including pairs where i < j.
+*/
 std::vector<std::array<size_t, 3>> MoleculeGraph::find_all_bond_angle_triplets() const
 {
     std::vector<std::array<size_t, 3>> result;
@@ -59,6 +73,10 @@ std::vector<std::array<size_t, 3>> MoleculeGraph::find_all_bond_angle_triplets()
     return result;
 }
 
+/*
+Finds all the quadruplets that make a dihedral angle in the molecule, returns as quadruplets of atom indices
+each angle is emitted once by only including pairs where i < j.
+*/
 std::vector<std::array<size_t, 4>> MoleculeGraph::find_all_torsion_quadruplets() const
 {
     std::vector<std::array<size_t, 4>> result;

@@ -19,6 +19,13 @@ bool is_bond(const Atom& a, const Atom& b);
 void assign_bonds(MoleculeGraph& mol);
 void type_carbon_backbones(MoleculeGraph& mol);
 void type_hydrogens(MoleculeGraph& mol);
+void type_halogens(MoleculeGraph& mol)
+void type_oxygen_and_nitrogen(MoleculeGraph& mol)
 void assign_amber_types(MoleculeGraph& mol);
+
+
+
+
+
 
 
