@@ -36,7 +36,7 @@ MoleculeGraph read_xyz(const std::string& filepath)
     */
     std::getline(f, line);
     std::istringstream iss(line);
-    mol.special_notes = iss; 
+    iss >> mol.special_notes; 
 
     // Lines 3-A: atom rows (element x y z)
     // future: read till end of file and make sure num_atoms matches num lines

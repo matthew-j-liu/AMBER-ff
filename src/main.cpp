@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     double dihedrals_term = calculate_dihedrals_term(mol, ff); 
     double vdw_term = calculate_vdw_term(mol, ff); 
 
-    double total_energy = bonds_term + angles_term + dihedrals_term + electrostatic_vdw_term; 
+    double total_energy = bonds_term + angles_term + dihedrals_term + vdw_term; 
 
     std::cout << "Bond stretching energy = " << bonds_term << std::endl;
     std::cout << "Bond Rotation energy = " << angles_term << std::endl;

@@ -31,7 +31,7 @@ bool is_bond(const Atom& a, const Atom& b)
     double lo = *std::min_element(refs.begin(), refs.end()) * 0.9;
     double hi = *std::max_element(refs.begin(), refs.end()) * 1.1;
 
-    double d = dist(a, b);
+    double d = bond_length(a, b);
     // return true only if d is within range of bond limits
     return (lo <= d && hi >= d);
 }
@@ -121,10 +121,10 @@ void type_oxygen_and_nitrogen(MoleculeGraph& mol)
         }
         if (mol.atoms[i].element == "N")
         {
-            // sp3 amine N
+            // sp3 amine N with lone pair
             // amides etc not considered here
-            if (num_bonds == 4)
-                mol.atoms[i].amber_type = "n4";
+            if (num_bonds == 3)
+                mol.atoms[i].amber_type = "n8";
         }
     }
 }
@@ -173,22 +173,22 @@ void type_carbon_backbones(MoleculeGraph& mol)
             for (size_t j : mol.get_bonds(i))
             {
                 const Atom& c_neighbor = mol.atoms[j];
-                double d = dist(mol.atoms[i], c_neighbors);
+                double d = bond_length(mol.atoms[i], c_neighbor);
                 // find c_neighbors here and if halogen or H, assign its type. 
                 // Prevents 2 additional loops through the molecule
 
-                if (c_neighbors.element == "C") {
+                if (c_neighbor.element == "C") {
                     if (d < 1.28)       has_triple   = true;
                     else if (d < 1.45)  has_C_double = true;
                     else                has_C_single = true;   
                 }
-                else if (nb.element == "O") {
+                else if (c_neighbor.element == "O") {
                     if (d < 1.28)       has_O_double = true;
                     // O is now carbonyl (co) 
                     else                has_O_single = true;   
                     // O is now hydroxyl or ether
                 }
-                else if (nb.element == "N") {
+                else if (c_neighbor.element == "N") {
                     has_N_single = true;   // n4 is sp3 only — no C=N double/triple in scope 
                 }
             }
@@ -223,7 +223,7 @@ void type_hydrogens(MoleculeGraph& mol)
         if (mol.atoms[i].element != "H") continue;
 
         const auto& h_neighbors = mol.get_bonds(i);
-        if (nbrs.empty()) { mol.atoms[i].amber_type = "H"; continue; }
+        if (h_neighbors.empty()) { mol.atoms[i].amber_type = "H"; continue; }
 
         const Atom& neighbor = mol.atoms[h_neighbors[0]];  // H always has exactly 1 bond
 

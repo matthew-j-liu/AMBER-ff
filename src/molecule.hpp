@@ -11,10 +11,10 @@ Improvement ideas:
 
 
 // Node in the molecular graph
-struct Atoms
+struct Atom
 {
     std::string element;    // e.g., "H", "C"
-    arma::vec   position;   // Angstroms, 3D
+    arma::vec position;   // Angstroms, 3D
     std::string amber_type; // AMBER code. For example, "c3" is sp3 carbon
 };
 

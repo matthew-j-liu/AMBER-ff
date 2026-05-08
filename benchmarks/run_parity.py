@@ -6,7 +6,6 @@ Usage (from repo root):
     python benchmarks/run_parity.py straight_chain_alkanes alcohols
 """
 
-import os
 import re
 import sys
 import subprocess
@@ -20,68 +19,32 @@ INPUT_DIR = REPO_ROOT / "input_molecules_copy"
 PARAMS    = REPO_ROOT / "params" / "selected_atoms.dat"
 BUILD_BIN = REPO_ROOT / "build" / "amber_ff"
 
-# Molecules organised by functional group.
+def _mol_name(stem: str) -> str:
+    """Strip source-file artifact suffixes so names match existing results dirs."""
+    for suffix in ("_PCS2", "_SE2", "_SE"):
+        if stem.endswith(suffix):
+            return stem[: -len(suffix)]
+    return stem
+
+
+def discover_molecule_groups() -> dict[str, list[tuple[str, str]]]:
+    """Scan INPUT_DIR for subdirectories and collect all .xyz files within each."""
+    groups: dict[str, list[tuple[str, str]]] = {}
+    for group_dir in sorted(INPUT_DIR.iterdir()):
+        if not group_dir.is_dir():
+            continue
+        molecules = [
+            (_mol_name(xyz.stem), f"{group_dir.name}/{xyz.name}")
+            for xyz in sorted(group_dir.glob("*.xyz"))
+        ]
+        if molecules:
+            groups[group_dir.name] = molecules
+    return groups
+
+
+# Molecules organised by functional group, auto-discovered from INPUT_DIR.
 # Each entry: (display_name, path_relative_to_INPUT_DIR)
-MOLECULE_GROUPS: dict[str, list[tuple[str, str]]] = {
-    "straight_chain_alkanes": [
-        ("methane",   "straight_chain_alkanes/methane.xyz"),
-        ("ethane",    "straight_chain_alkanes/ethane.xyz"),
-        ("propane",   "straight_chain_alkanes/propane.xyz"),
-        ("n-butane",  "straight_chain_alkanes/n-butane.xyz"),
-        ("n-pentane", "straight_chain_alkanes/n-pentane.xyz"),
-        ("n-hexane",  "straight_chain_alkanes/n-hexane.xyz"),
-    ],
-    "branched_alkanes": [
-        ("isobutane",          "branched_alkanes/isobutane.xyz"),
-        ("isopentane",         "branched_alkanes/isopentane.xyz"),
-        ("neopentane",         "branched_alkanes/neopentane.xyz"),
-        ("2-methylpropane",    "branched_alkanes/2-Methylpropane.xyz"),
-        ("2_3-dimethylbutane", "branched_alkanes/2_3-dimethylbutane.xyz"),
-    ],
-    "alkenes": [
-        ("ethene",             "alkenes/ethene.xyz"),
-        ("propene",            "alkenes/propene.xyz"),
-        ("isobutylene",        "alkenes/isobutylene.xyz"),
-        ("2-methyl-1-propene", "alkenes/2-methyl-1-propene_PCS2.xyz"),
-        ("but-1-ene",          "alkenes/But-1-ene.xyz"),
-    ],
-    "alkynes": [
-        ("ethyne",                  "alkynes/ethyne.xyz"),
-        ("propyne",                 "alkynes/propyne.xyz"),
-        ("1-butyne",                "alkynes/1-butyne.xyz"),
-        ("3-methyl-but-3-en-1-yne", "alkynes/3-methyl-but-3-en-1-yne_PCS2.xyz"),
-    ],
-    "alcohols": [
-        ("methanol",        "alcohols/methanol.xyz"),
-        ("ethanol",         "alcohols/ethanol.xyz"),
-        ("isopropanol",     "alcohols/isopropanol.xyz"),
-        ("1-propanol",      "alcohols/1-propanol.xyz"),
-        ("ethylene_glycol", "alcohols/ethylene_glycol.xyz"),
-        ("glycerol",        "alcohols/glycerol.xyz"),
-    ],
-    "aldehydes": [
-        ("propanal", "aldehydes/propanal.xyz"),
-    ],
-    "amines": [
-        ("methylamine", "amines/methylamine.xyz"),
-        ("ethylamine",  "amines/ethylamine.xyz"),
-        ("azepane",     "amines/azepane.xyz"),
-    ],
-    "carboxylic_acids": [
-        ("acetic_acid",        "carboxylic_acids/acetic_acid.xyz"),
-        ("glycolic_acid",      "carboxylic_acids/glycolic_acid.xyz"),
-        ("cis_acrylic_acid",   "carboxylic_acids/cis_acrylic_acid.xyz"),
-        ("trans_acrylic_acid", "carboxylic_acids/trans_acrylic_acid.xyz"),
-    ],
-    "halogenated": [
-        ("methylene_chloride", "halogenated/methylene_chloride.xyz"),
-        ("ethyl_chloride",     "halogenated/ethyl_chloride.xyz"),
-    ],
-    "amino_acids": [
-        ("glycine",  "amino_acids/glycine.xyz"),
-        ("alanine",  "amino_acids/alanine.xyz"),
-    ],
-}
+MOLECULE_GROUPS: dict[str, list[tuple[str, str]]] = discover_molecule_groups()
 
 
 def parse_amber_energies(sp_out: Path) -> dict[str, float]:
@@ -142,14 +105,6 @@ def write_custom_h5(path: Path, energies: dict[str, float]) -> None:
             f.create_dataset(k, data=v)
 
 
-def run_amber(mol: str, xyz_path: Path) -> None:
-    print(f"  [AMBER]  {mol}")
-    script = REPO_ROOT / "run_AMBER_benchmarking_simple.sh"
-    ret = os.system(f"'{script}' '{xyz_path}'")
-    if ret != 0:
-        sys.exit(f"AMBER run failed for {mol}")
-
-
 def run_custom(mol: str, xyz_path: Path) -> dict[str, float]:
     print(f"  [custom] {mol}")
     result = subprocess.run(
@@ -180,14 +135,17 @@ def main():
                 print(f"  [skip] {mol} — xyz not found: {xyz_path}")
                 continue
 
-            run_amber(mol, xyz_path)
-            custom_energies = run_custom(mol, xyz_path)
-
-            amber_mol_name = xyz_path.stem  # matches workdir created by the bash script
-            sp_out    = REPO_ROOT / "amber_runs" / amber_mol_name / "sp.out"
+            # sp.out is under amber_runs/<group>/<stem>/ — matches run_AMBER_benchmarking.sh
+            safe_rel = rel_path.replace(" ", "_")
+            sp_out    = REPO_ROOT / "amber_runs" / Path(safe_rel).with_suffix("") / "sp.out"
             amber_h5  = REPO_ROOT / "results" / group / mol / "amber.h5"
             custom_h5 = REPO_ROOT / "results" / group / mol / "custom.h5"
 
+            if not sp_out.exists():
+                print(f"  [skip] {mol} — sp.out not found: {sp_out}")
+                continue
+
+            custom_energies = run_custom(mol, xyz_path)
             write_amber_h5(amber_h5, parse_amber_energies(sp_out))
             write_custom_h5(custom_h5, custom_energies)
             print(f"    wrote {amber_h5.relative_to(REPO_ROOT)}")

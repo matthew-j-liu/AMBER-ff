@@ -28,18 +28,23 @@ TERMS = {
     "total_energy":     "Total",
 }
 
-GROUP_COLORS = {
-    "straight_chain_alkanes": "#1f77b4",
-    "branched_alkanes":       "#ff7f0e",
-    "alkenes":                "#2ca02c",
-    "alkynes":                "#d62728",
-    "alcohols":               "#9467bd",
-    "amines":                 "#8c564b",
-    "aldehydes":              "#e377c2",
-    "carboxylic_acids":       "#7f7f7f",
-    "halogenated":            "#bcbd22",
-    "amino_acids":            "#17becf",
+GROUP_MOL_ORDER = {
+    "straight_chain_alkanes": ["methane", "ethane", "propane", "butane", "pentane", "hexane"],
 }
+
+
+GROUP_COLORS = {
+    "Straight-chain alkanes": "#1f77b4",
+    "Branched alkanes":       "#17becf",
+    "Alkenes":                "#29e429",
+    "Alkynes":                "#46853A",
+    "Alcohols":               "#e11d24",
+    "Amines":                 "#a52880",
+    "Carboxylic acids":       "#f28220",
+    "Haloalkanes":            "#7B4BC8",
+    "2+ functional groups":   "#eaf111",
+}
+
 
 
 def load(group: str, mol: str, source: str) -> dict[str, float]:
@@ -94,6 +99,9 @@ def plot_per_group(
         if not mol_data:
             continue
         mols = list(mol_data)
+        if group in GROUP_MOL_ORDER:
+            order = GROUP_MOL_ORDER[group]
+            mols = [m for m in order if m in mol_data] + [m for m in mols if m not in order]
         palette = plt.cm.viridis(np.linspace(0.1, 0.85, len(mols)))
         group_dir = FIGURES_DIR / group
 

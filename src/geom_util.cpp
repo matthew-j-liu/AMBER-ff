@@ -38,7 +38,7 @@ double dihedral_angle(const arma::vec& pi, const arma::vec& pj,
 }
 
 // Atom overloads — delegate to the arma::vec versions above
-double bond_lengths(const Atom& a, const Atom& b)
+double bond_length(const Atom& a, const Atom& b)
 {
     return bond_length(a.position, b.position);
 }

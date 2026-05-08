@@ -19,7 +19,7 @@ double bond_streching_energy(double bond_length, double K_r, double r_eq)
 // E = K_theta * (theta_rad - theta_eq_rad)^2
 double bond_rotation_energy(double angle_deg, double K_theta, double theta_eq_deg)
 {
-    double dtheta = (angle_deg - theta_eq_deg) * DEG2RAD;
+    double dtheta = (angle_deg - theta_eq_deg) * DEG_to_RAD;
     return K_theta * dtheta * dtheta;
 }
 
@@ -27,9 +27,9 @@ double bond_rotation_energy(double angle_deg, double K_theta, double theta_eq_de
 double bond_torsion_energy(double phi_deg, const std::vector<DihedralParams>& terms)
 {
     double e = 0.0;
-    double phi_rad = phi_deg * DEG2RAD;
+    double phi_rad = phi_deg * DEG_to_RAD;
     for (const auto& t : terms)
-        e += (t.Vn / t.divider) * (1.0 + std::cos(t.n * phi_rad - t.gamma * DEG2RAD));
+        e += (t.Vn / t.divider) * (1.0 + std::cos(t.n * phi_rad - t.gamma * DEG_to_RAD));
     return e;
 }
 
@@ -158,7 +158,7 @@ double calculate_dihedrals_term(const MoleculeGraph& mol, const ForceField& ff)
     return total;
 }
 
-// loops over all 
+// loops over all atom pairs first, and excludes those counted by other terms
 double calculate_vdw_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
@@ -195,24 +195,27 @@ double calculate_vdw_term(const MoleculeGraph& mol, const ForceField& ff)
     {
         for (size_t j = i + 1; j < n; ++j)
         {
-            auto key = std::make_pair(i, j);
-            if (excluded.count(vdw_atom_pair)) continue;
+            auto atom_pair = std::make_pair(i, j);
+            if (excluded.count(atom_pair)) continue;
 
             const std::string& type_i = mol.atoms[i].amber_type;
             const std::string& type_j = mol.atoms[j].amber_type;
 
-            auto it_i = ff.vdw.find(type_i);
-            auto it_j = ff.vdw.find(type_j);
-            if (it_i == ff.vdw.end() || it_j == ff.vdw.end()) continue;
+            auto vdw_params_i = ff.vdw.find(type_i);
+            auto vdw_params_j = ff.vdw.find(type_j);
+            if (vdw_params_i == ff.vdw.end() || vdw_params_j == ff.vdw.end()) continue;
 
-            double R_star_ij = it_i->second.R_star + it_j->second.R_star;
-            double eps_ij    = std::sqrt(it_i->second.epsilon * it_j->second.epsilon);
+            // R*_ij = R*_i + R*_j, E_ij = sqrt(E_i * E_j)
+            double R_star_ij = vdw_params_i->second.R_star + vdw_params_j->second.R_star;
+            double eps_ij = std::sqrt(vdw_params_i->second.epsilon * vdw_params_j->second.epsilon);
+
             double A = eps_ij * std::pow(R_star_ij, 12);
             double B = 2.0 * eps_ij * std::pow(R_star_ij, 6);
-            double r = dist(mol.atoms[i], mol.atoms[j]);
+
+            double r = bond_length(mol.atoms[i], mol.atoms[j]);
 
             double e = vdw_energy(r, A, B);
-            if (scaled_14.count(key)) e *= 0.5; 
+            if (scaled_14.count(atom_pair)) e *= 0.5; 
             total += e;
         }
     }

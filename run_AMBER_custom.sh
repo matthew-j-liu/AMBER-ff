@@ -4,14 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 
-# 10 benchmark molecules — c, c2, c3, c1, hc, ha, ho, oh, cl only (no c6/ce)
-BENCHMARK_MOLECULES=(
-  "ethane"
-  "propane"
-  "n-butane"
-  "n-pentane"
-  "n-hexane"
-)
+FUNCTIONAL_GROUPS=()
+for _d in "$SCRIPT_DIR/input_molecules_copy"/*/; do
+  [[ -d "$_d" ]] && FUNCTIONAL_GROUPS+=("$(basename "$_d")")
+done
+IFS=$'\n' FUNCTIONAL_GROUPS=($(sort <<<"${FUNCTIONAL_GROUPS[*]}")); unset IFS
 
 usage() {
   echo "Usage: $0 [molecule] [params]"
@@ -60,13 +57,18 @@ run_molecule() {
 }
 
 # Usage: ./run_AMBER_custom.sh [molecule] [params]
-# With no arguments, loops all benchmark molecules using selected_atoms.dat.
+# With no arguments, loops all molecules by functional group using selected_atoms.dat.
 if [[ $# -ge 1 ]]; then
   run_molecule "${1}" "${2:-selected_atoms.dat}"
 else
   FAILED=()
-  for mol in "${BENCHMARK_MOLECULES[@]}"; do
-    run_molecule "$mol" "selected_atoms.dat" || FAILED+=("$mol")
+  for group in "${FUNCTIONAL_GROUPS[@]}"; do
+    echo ""
+    echo "====== GROUP: $(echo "$group" | tr '[:lower:]' '[:upper:]') ======"
+    for xyz in "$SCRIPT_DIR/input_molecules_copy/${group}"/*.xyz; do
+      [[ -f "$xyz" ]] || continue
+      run_molecule "$xyz" "selected_atoms.dat" || FAILED+=("$xyz")
+    done
   done
 
   echo ""
