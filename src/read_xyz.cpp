@@ -30,16 +30,12 @@ MoleculeGraph read_xyz(const std::string& filepath)
         throw std::runtime_error("Atom count needed on line 1!");
     }
 
-    /* line 2: comment 
-    // Optional special notes on molecule. 
-    Expected: "conjugated" and "aromatic". "cyclic" - not implemented yet
-    */
+    //  line 2: comment 
     std::getline(f, line);
     std::istringstream iss(line);
     iss >> mol.special_notes; 
 
     // Lines 3-A: atom rows (element x y z)
-    // future: read till end of file and make sure num_atoms matches num lines
     for (int i = 0; i < num_atoms; i++)
     {
         std::getline(f, line);
@@ -66,23 +62,5 @@ MoleculeGraph read_xyz(const std::string& filepath)
     // assign amber_type based on bonds 
     assign_amber_types(mol); 
     
-
-    // OLD CODE (HARD CODED BONDS)
-    // Lines A-Z: bond rows (atom_i atom_j)
-    //std::getline(f, line); // section header
-
-    //while (std::getline(f, line))
-    //{
-    //   std::istringstream iss(line);
-    //    int i, j;
-
-    //    if (!(iss >> i >> j))
-    //    {
-    //        throw std::runtime_error("Malformed bond row: " + line);
-    //    }
-
-    //    mol.add_bond(i, j);
-    //}
-
     return mol;
 }

@@ -5,9 +5,6 @@
 #include <cmath>
 #include <set>
 
-// ----------------------------------------
-// ENERGY CONTRIBUTIONS AT THE ATOMIC LEVEL
-// ----------------------------------------
 
 // E = K_r * (r - r_eq)^2
 double bond_streching_energy(double bond_length, double K_r, double r_eq)
@@ -40,13 +37,9 @@ double vdw_energy(double r, double A, double B)
     return A / (r6 * r6) - B / r6;
 }
 
-// ---------------------------------
-// SUMMATIONS OVER THE FULL MOLECULE
-// ---------------------------------
+// summation over the full molecule 
 
-// loops over all direct bonds
-// calc bond length 
-// read parameters from parameters map 
+// begin with direct bonds 
 double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
@@ -77,9 +70,7 @@ double calculate_bonds_term(const MoleculeGraph& mol, const ForceField& ff)
     return total;
 }
 
-// loops over all 1-2-3 bonds
-// calc bond angle 
-// read parameters from parameters map 
+// loop over all triplets 
 double calculate_angles_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
@@ -110,9 +101,7 @@ double calculate_angles_term(const MoleculeGraph& mol, const ForceField& ff)
     return total;
 }
 
-// loops over all 1-2-3-4 bonds
-// calc dihdedral angle 
-// read parameters from parameters map 
+// loops over all quadruplets
 double calculate_dihedrals_term(const MoleculeGraph& mol, const ForceField& ff)
 {
     double total = 0.0;
@@ -130,9 +119,8 @@ double calculate_dihedrals_term(const MoleculeGraph& mol, const ForceField& ff)
         // find dihedral angle 
         double phi = dihedral_angle(mol.atoms[i], mol.atoms[j], mol.atoms[k], mol.atoms[l]);
 
-        // read params 
-        // params are read as using DihedralKey = std::tuple<std::string, std::string, std::string, std::string>
-        // many dihedral params use X as wild-card, causing imperfect lookups  
+        // read params using DihedralKey = std::tuple<std::string, std::string, std::string, std::string>
+        // note that many dihedral params use X as wild-card
 
         auto dihedral_params = ff.dihedrals.find({type_i, type_j, type_k, type_l});
         // try forward search 
@@ -168,11 +156,11 @@ double calculate_vdw_term(const MoleculeGraph& mol, const ForceField& ff)
     std::set<std::pair<size_t, size_t>> excluded;
     std::set<std::pair<size_t, size_t>> scaled_14;
 
-    // 1-2 pairs already accounted by bond stretching, added to excluded (to prevent double counting in branched/ cyclic structures)
+    // 1-2 pairs already accounted by bond stretching, add to excluded (to prevent double counting)
     for (const auto& bond : mol.find_all_bonds())
         excluded.insert({bond[0], bond[1]});
 
-    // 1-3 pairs already accounted by bond angles, added to excluded (to prevent double counting in branched/ cyclic structures)
+    // 1-3 pairs already accounted by bond angles, add to excluded (to prevent double counting)
     for (const auto& triplet : mol.find_all_bond_angle_triplets())
     {
         // indices of i-j-k in triplet
