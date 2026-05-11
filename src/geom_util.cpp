@@ -1,17 +1,14 @@
-// Utility functions related to the structure/ geometry of the molecule
-
 #include "geom_util.hpp"
 #include "ff_params.hpp"
 #include <algorithm>
 
-// Calculate the bond distance, bond angle and dihedral angles
-// euclidean distance between two atom positions
+
 double bond_length(const arma::vec& a, const arma::vec& b)
 {
     return arma::norm(b - a);
 }
 
-// bond angle at j in the triplet i-j-k, returned in degrees
+// bond angle at j in the triplet i-j-k (in units degrees)
 double angle_deg(const arma::vec& pi, const arma::vec& pj, const arma::vec& pk)
 {
     arma::vec v1 = pi - pj;
@@ -21,7 +18,7 @@ double angle_deg(const arma::vec& pi, const arma::vec& pj, const arma::vec& pk)
     return std::acos(c) / DEG_to_RAD;
 }
 
-// dihedral angle for i-j-k-l, returned in degrees
+// dihedral angle for the quadruplet i-j-k-l (in units degrees)
 double dihedral_angle(const arma::vec& pi, const arma::vec& pj,
                             const arma::vec& pk, const arma::vec& pl)
 {
@@ -37,7 +34,7 @@ double dihedral_angle(const arma::vec& pi, const arma::vec& pj,
     return phi;
 }
 
-// Atom overloads — delegate to the arma::vec versions above
+// Atom overloads 
 double bond_length(const Atom& a, const Atom& b)
 {
     return bond_length(a.position, b.position);

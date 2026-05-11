@@ -1,8 +1,3 @@
-/*
-Improvement ideas:
-- MoleculeGraph should inherit from Boost graphs
-*/
-
 #pragma once
 #include <vector>
 #include <string>
@@ -13,9 +8,9 @@ Improvement ideas:
 // Node in the molecular graph
 struct Atom
 {
-    std::string element;    // e.g., "H", "C"
-    arma::vec position;   // Angstroms, 3D
-    std::string amber_type; // AMBER code. For example, "c3" is sp3 carbon
+    std::string element; // e.g., "H", "C"
+    arma::vec position; // Angstroms
+    std::string amber_type; 
 };
 
 

@@ -1,7 +1,7 @@
 // functions to help identify the geometry of the molecule from the coordinates
 
 /* 
-Improvement ideas:
+Ideas for future improvement:
 - do not loop over all atoms for each element type
 - start with backbone and stick to that only
 - use Boost graph functions for traversal etc (MoleculeGraph should inherit from Boost graphs)
@@ -23,7 +23,7 @@ bool is_bond(const Atom& a, const Atom& b)
     if (e1 > e2) std::swap(e1, e2);
 
     // std::map.find(), returns iterator to std::pair<key, value>, accessed by first and second
-    // uses hardcoded element wise lookup, not amber_type lookups (as amber type has not been assigned yet)
+    // use hardcoded element wise lookup, since amber type has not been assigned yet
     auto actual_bond_length = BOND_LENGTHS.find({e1, e2});
     if (actual_bond_length == BOND_LENGTHS.end()) return false;
 
@@ -36,8 +36,7 @@ bool is_bond(const Atom& a, const Atom& b)
     return (lo <= d && hi >= d);
 }
 
-// loops through all atom pairs and considers it a bond if it lies within 10% of the expected bond lengths
-// lots of possible issues here, but we go with this for now
+// loop through all atom pairs and consider it a bond if it lies within 10% of the expected bond lengths
 void assign_bonds(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++) {
@@ -54,24 +53,22 @@ Assign amber_types to each atom based on the bonds information we have now in th
 The element wise order of assignment is important.
 Smarter way is to traverse the backbone and then assign the neighbors as you go, instead of looping through all atoms each time
 
-Types Considered-
-#   c   = Sp2 C carbonyl group
-#   c1  = Sp C (alkyne, nitrile)
-#   ha  = H bonded to sp2/sp C
-#   c2  = Sp2 C (non-aromatic)
-#   c3  = Sp3 C
-#   hc  = H bonded to aliphatic C without electronegative groups
-#   hn  = H bonded to N
-#   ho  = H in hydroxyl group
-#   NITROGENS
-#   n4  = Sp3 N with four connected atoms
-#   OXYGENS
-#   o   = O with one connected atom (carbonyl)
-#   oh  = O in hydroxyl group
-#   HALOGENS
-#   cl  = Chlorine
-#   br  = Bromine
-#   f   = Fluorine
+Types Considered
+------------------
+c   = Sp2 C carbonyl group
+c1  = Sp C (alkyne, nitrile)
+ha  = H bonded to sp2/sp C
+c2  = Sp2 C (non-aromatic)
+c3  = Sp3 C
+hc  = H bonded to aliphatic C without electronegative groups
+hn  = H bonded to N
+ho  = H in hydroxyl group
+n4  = Sp3 N with four connected atoms
+o   = O with one connected atom (carbonyl)
+oh  = O in hydroxyl group
+cl  = Chlorine
+br  = Bromine
+f   = Fluorine
 */
 void assign_amber_types(MoleculeGraph& mol)
 {
@@ -79,14 +76,9 @@ void assign_amber_types(MoleculeGraph& mol)
     type_oxygen_and_nitrogen(mol);
     type_carbon_backbones(mol);
     type_hydrogens(mol);
-
-    // loop through all atoms, check neighbor element - assign C and neighbor type based on that
-    // traverse_backbone(mol);
-    // confirm assignments are correct
-    // check_bond_orders(mol); 
 }
 
-// Halogens - Cl, Br and F
+// Step 1: we can assign halogens right away 
 void type_halogens(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++)
@@ -100,9 +92,9 @@ void type_halogens(MoleculeGraph& mol)
     }
 }
 
-// assigned based on number of bonds
+
 // Oxygen: single bond means -OH (oh) (no ethers), double bond means C=O (c) 
-// Nitrogen: assume 4 bonds, sp3 (n4)
+// Nitrogen: assume 4 bonds
 void type_oxygen_and_nitrogen(MoleculeGraph& mol)
 {
     for (int i = 0; i < mol.num_atoms(); i++)
@@ -133,16 +125,16 @@ void type_oxygen_and_nitrogen(MoleculeGraph& mol)
 /*
 Classify carbons based on bond distances to neighbors, and number of atoms.
 Priority: c1 (sp, triple) > c (sp2, C=O) > c2 (sp2, C=C) > c3 (sp3)
-Could use other angle information (for example), but not implemented here. Also some issues with circular logic here.
 
 Distance thresholds from selected_atoms.dat/ gaff2.dat:
 (Hardcoded here)
-  C-C triple  (c1-c1): ~1.21 A  -> d < 1.28
-  C-C double  (c2-c2): ~1.34 A  -> 1.28 <= d < 1.45
-  C-C single  (c3-c3): ~1.54 A  -> d >= 1.45
-  C=O double  : ~1.22 A  -> d < 1.28
-  C-O single  (c3-oh): ~1.43 A  -> d >= 1.28  (c-oh in carboxylate: ~1.36 A)
-  C-N single  (c3-n4): ~1.52 A  -> any distance (n4 is sp3, no C=N in scope)
+
+C-C triple  (c1-c1): ~1.21 A  -> d < 1.28
+C-C double  (c2-c2): ~1.34 A  -> 1.28 <= d < 1.45
+C-C single  (c3-c3): ~1.54 A  -> d >= 1.45
+C=O double  : ~1.22 A  -> d < 1.28
+C-O single  (c3-oh): ~1.43 A  -> d >= 1.28  (c-oh in carboxylate: ~1.36 A)
+C-N single  (c3-n4): ~1.52 A  -> any distance (n4 is sp3, no C=N in scope)
 */
 void type_carbon_backbones(MoleculeGraph& mol)
 {
@@ -209,12 +201,12 @@ void type_carbon_backbones(MoleculeGraph& mol)
 }
 
 /*
-Type hydrogens based on what they are bonded to.
-Must run last.
-  hc — H on sp3 C (c3)
-  ha — H on sp2/sp C (c, c2, c1)
-  ho — H on O
-  hn — H on N
+Lastly, type hydrogens based on what they are bonded to.
+
+hc — H on sp3 C (c3)
+ha — H on sp2/sp C (c, c2, c1)
+ho — H on O
+hn — H on N
 */
 void type_hydrogens(MoleculeGraph& mol)
 {
