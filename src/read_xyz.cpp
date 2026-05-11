@@ -1,7 +1,11 @@
-#include "read_xyz.hpp"
+#include "parsing.hpp"
+#include "mol_utils.hpp"
+#include "geom_util.hpp"
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+
 
 MoleculeGraph read_xyz(const std::string& filepath)
 {
@@ -13,6 +17,7 @@ MoleculeGraph read_xyz(const std::string& filepath)
     }
 
     MoleculeGraph mol;
+
     std::string line;
 
     // line 1: atom count
@@ -25,8 +30,10 @@ MoleculeGraph read_xyz(const std::string& filepath)
         throw std::runtime_error("Atom count needed on line 1!");
     }
 
-    // line 2: comment (discard, like in the homeworks)
+    //  line 2: comment 
     std::getline(f, line);
+    std::istringstream iss(line);
+    iss >> mol.special_notes; 
 
     // Lines 3-A: atom rows (element x y z)
     for (int i = 0; i < num_atoms; i++)
@@ -36,39 +43,24 @@ MoleculeGraph read_xyz(const std::string& filepath)
         Atom a;
         double x, y, z;
 
+        // assign coordinates to position vec  
         if (!(iss >> a.element >> x >> y >> z))
         {
             throw std::runtime_error("Malformed atom row: " + line);
         }
-
         a.position = arma::vec({x, y, z});
-        // ambertype is hard-coded for now
-        if (a.element == "C")
-        {
-            a.amber_type = "c3";
-        }
-        else if (a.element == "H")
-        {
-            a.amber_type = "hc";
-        }
+
+        // assign default to amber_type
+        a.amber_type = "n/a";
+
         mol.add_atom(a);
     }
 
-    // Lines A-Z: bond rows (atom_i atom_j)
-    std::getline(f, line); // section header
+    // assign bonds based on the coordinates
+    assign_bonds(mol); 
 
-    while (std::getline(f, line))
-    {
-        std::istringstream iss(line);
-        int i, j;
-
-        if (!(iss >> i >> j))
-        {
-            throw std::runtime_error("Malformed bond row: " + line);
-        }
-
-        mol.add_bond(i, j);
-    }
-
+    // assign amber_type based on bonds 
+    assign_amber_types(mol); 
+    
     return mol;
 }

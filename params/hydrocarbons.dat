@@ -1,5 +1,5 @@
-# Saturated alkane parameters extracted from `gaff2.dat`
-# https://github.com/choderalab/ambermini/blob/master/share/amber/dat/leap/parm/gaff2.dat
+# Saturated alkane parameters extracted from ambertools25 gaff2.dat
+# Source: $AMBERHOME/dat/leap/parm/gaff2.dat  (AmberTools 25, 2021 revision)
 
 # Atom types
 # -------------
@@ -9,23 +9,21 @@
 # Bond term:  E = K_r * (r - r_eq)^2
 # format: type_i  type_j  K_r [kcal/mol/angstrom^2]  r_eq [angstrom]
 [bonds]
-c3 c3   232.52  1.538
-c3 hc   375.92  1.097
+c3 c3   228.89  1.5354
+c3 hc   345.25  1.0962
 
 # Angle term:  E = K_theta * (theta - theta_eq)^2
 # format: type_i  type_j  type_k  K_theta [kcal/mol/rad^2]  theta_eq [deg]
 [angles]
-c3 c3 c3   64.888  111.510
-c3 c3 hc   46.816  109.800
-hc c3 hc   38.960  107.580
+c3 c3 c3   59.87  112.63
+c3 c3 hc   43.27  109.68
+hc c3 hc   35.80  107.73
 
 # Dihedral term:  E = (Vn / divider) * (1 + cos(n*phi - gamma))
 # format: type_i  type_j  type_k  type_l  divider  Vn  gamma [deg]  n
 [dihedrals]
-c3 c3 c3 c3   1   0.130    0.000   3
-c3 c3 c3 c3   1   0.290  180.000   2
-c3 c3 c3 c3   1   0.110    0.000   1
-c3 c3 c3 hc   1   0.080    0.000   3
+c3 c3 c3 c3   1   0.520    0.000   3
+c3 c3 c3 hc   1   0.130    0.000   3
 hc c3 c3 hc   1   0.120    0.000   3
 
 # vdW term:  E = eps_ij * [(R*_ij/r)^12 - 2*(R*_ij/r)^6]

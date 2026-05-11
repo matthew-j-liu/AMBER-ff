@@ -24,8 +24,7 @@ Let's reason through how many atoms are needed to encode a bond, angle, and dihe
 
 bond: 2 atoms (e.g., C-H bond)
 angle: 3 atoms (e.g., H-O-H angle is 104.5 degrees)
-dihedral: 4 atoms (from Wikipedia: "the clockwise angle between half-planes through 
-two sets of three atoms, having two atoms in common)"
+dihedral: 4 atoms (2 atoms form axis of rotation. Atoms attached to each define the full rotation)"
 
 A logical structure would therefore use the atoms involved in each of these properties (e.g., a bond)
 as a key to the parameter values. 
