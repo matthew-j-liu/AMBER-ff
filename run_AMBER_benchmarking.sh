@@ -4,7 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESULTS_DIR="$SCRIPT_DIR/results"
 LATEST_FILE="$RESULTS_DIR/latest_benchmark.txt"
 
-# --load / -l: print the last saved benchmark results and exit
 if [[ "${1:-}" == "--load" || "${1:-}" == "-l" ]]; then
   if [[ -f "$LATEST_FILE" ]]; then
     echo "=== Last saved benchmark results ==="
@@ -15,11 +14,13 @@ if [[ "${1:-}" == "--load" || "${1:-}" == "-l" ]]; then
   exit 0
 fi
 
-# AMBER setup
-export AMBERHOME=/Users/jahnavigandhi/Desktop/chem_279/project/AMBER_benchmarking/ambertools25
-export PATH=$AMBERHOME/bin:$PATH
-export DYLD_LIBRARY_PATH=/usr/lib:$DYLD_LIBRARY_PATH
-source $AMBERHOME/amber.sh
+if [[ -z "${AMBERHOME:-}" ]]; then
+  echo "Error: AMBERHOME is not set. Run inside the project's Docker image" >&2
+  echo "(see Dockerfile) or 'export AMBERHOME=/path/to/amber' before invoking." >&2
+  exit 1
+fi
+export PATH="$AMBERHOME/bin:$PATH"
+[[ -f "$AMBERHOME/amber.sh" ]] && source "$AMBERHOME/amber.sh"
 
 FUNCTIONAL_GROUPS=()
 for _d in "$SCRIPT_DIR/input_molecules_copy"/*/; do
