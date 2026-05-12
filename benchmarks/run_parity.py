@@ -8,6 +8,7 @@ Usage (from repo root):
 
 import re
 import sys
+import shutil
 import subprocess
 from pathlib import Path
 import h5py
@@ -17,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INPUT_DIR = REPO_ROOT / "input_molecules_copy"
 PARAMS    = REPO_ROOT / "params" / "selected_atoms.dat"
-BUILD_BIN = REPO_ROOT / "build" / "amber_ff"
+BUILD_BIN = shutil.which("amber_ff") or str(REPO_ROOT / "build" / "amber_ff")
 
 def _mol_name(stem: str) -> str:
     """Strip source-file artifact suffixes so names match existing results dirs."""
