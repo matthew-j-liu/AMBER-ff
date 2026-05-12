@@ -1,0 +1,13 @@
+build/
+amber_runs/
+results/
+**/__pycache__/
+**/*.pyc
+.git/
+.gitignore
+.vscode/
+.idea/
+*.log
+report/
+literature/
+main
