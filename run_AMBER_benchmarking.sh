@@ -14,13 +14,19 @@ if [[ "${1:-}" == "--load" || "${1:-}" == "-l" ]]; then
   exit 0
 fi
 
-if [[ -z "${AMBERHOME:-}" ]]; then
-  echo "Error: AMBERHOME is not set. Run inside the project's Docker image" >&2
-  echo "(see Dockerfile) or 'export AMBERHOME=/path/to/amber' before invoking." >&2
-  exit 1
-fi
+# AMBER setup
+
+# Set default only if not already defined
+export AMBERHOME="${AMBERHOME:-/opt/conda}"
+
 export PATH="$AMBERHOME/bin:$PATH"
-[[ -f "$AMBERHOME/amber.sh" ]] && source "$AMBERHOME/amber.sh"
+
+# Source if available
+if [[ -f "$AMBERHOME/amber.sh" ]]; then
+  source "$AMBERHOME/amber.sh"
+else
+  echo "Warning: amber.sh not found in $AMBERHOME" >&2
+fi
 
 FUNCTIONAL_GROUPS=()
 for _d in "$SCRIPT_DIR/input_molecules_copy"/*/; do
