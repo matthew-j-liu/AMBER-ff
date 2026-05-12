@@ -8,6 +8,8 @@ The two pipelines compared throughout this document are:
 - AMBER reference — the AmberTools 24.8 pipeline: obabel, antechamber, parmchk2, tleap, sander
 - Custom implementation — the amber_ff C++ binary built from this repo
 
+The complete list of molecules tested is included in input_molecules_copy/list_of_molecules.md
+
 ## Prerequisites
 
 From the repo root, build the image once (takes about 5 min):
