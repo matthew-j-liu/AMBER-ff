@@ -29,6 +29,9 @@ target_link_libraries(amber_ff_lib PUBLIC ${ARMADILLO_LIBRARIES})
 add_executable(amber_ff src/main.cpp)
 target_link_libraries(amber_ff PRIVATE amber_ff_lib)
 
+add_executable(dihedral_scan src/dihedral_scan_main.cpp)
+target_link_libraries(dihedral_scan PRIVATE amber_ff_lib)
+
 # Test Cases (disabled)
 # enable_testing()
 # include(GoogleTest)
