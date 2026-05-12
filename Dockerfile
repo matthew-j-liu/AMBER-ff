@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # AmberTools 25 + Armadillo from conda-forge (prebuilt; no source compile).
-RUN mamba install -n base -c conda-forge -y ambertools=24 armadillo \
+RUN mamba install -n base -c conda-forge -y ambertools=24 armadillo openbabel \
     && mamba clean -afy
 ENV AMBERHOME=/opt/conda
 ENV PATH=/opt/conda/bin:$PATH
@@ -33,7 +33,7 @@ RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
 # ---------- stage 2: runtime --------------------------------------------------
 FROM condaforge/miniforge3:24.9.0-0 AS runtime
 
-RUN mamba install -n base -c conda-forge -y ambertools=24 armadillo \
+RUN mamba install -n base -c conda-forge -y ambertools=24 armadillo openbabel \
     && mamba clean -afy
 ENV AMBERHOME=/opt/conda
 ENV PATH=/opt/conda/bin:/usr/local/bin:$PATH
